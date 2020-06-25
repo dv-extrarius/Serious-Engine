@@ -703,6 +703,9 @@ void CObject3D::ConvertArraysToO3D( void)
     popo[iTri].opo_amdMappings[0].md_fVoT = -uvToTarget.matrix[1][1];
     popo[iTri].opo_amdMappings[0].md_fUOffset = -uvToTarget.matrix[0][2];
     popo[iTri].opo_amdMappings[0].md_fVOffset = uvToTarget.matrix[1][2];
+
+    popo[iTri].opo_amdMappings[1] = popo[iTri].opo_amdMappings[0];
+    popo[iTri].opo_amdMappings[2] = popo[iTri].opo_amdMappings[0];
   }
   acmMaterials.Unlock();
 }
