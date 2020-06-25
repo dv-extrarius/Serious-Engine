@@ -613,6 +613,7 @@ void CObject3D::ConvertArraysToO3D( void)
 	CObjectPlane *popl = osc.osc_aoplPlanes.New(ctTriangles);
   // we need 3 edges for each polygon
   CObjectEdge *poedg = osc.osc_aoedEdges.New(ctTriangles*3);
+  bool hasTextureCoordinates = avTextureVertices.Count() > 0;
   for(INDEX iTri=0; iTri<ctTriangles; iTri++)
   {
     // obtain triangle's vertices
@@ -636,10 +637,72 @@ void CObject3D::ConvertArraysToO3D( void)
     // set material
     popo[iTri].opo_Material = &osc.osc_aomtMaterials[ actTriangles[iTri].ct_iMaterial];
     popo[iTri].opo_colorColor = popo[iTri].opo_Material->omt_Color;
-    
+
     // create and set plane
     popl[iTri] = DOUBLEplane3D( *pVtx0, *pVtx1, *pVtx2);
     popo[iTri].opo_Plane = &popl[iTri];
+
+    if (!hasTextureCoordinates)
+      continue;
+
+    // copy UV coordinates to polygon texture mapping
+    CMappingVectors mappingVectors;
+    mappingVectors.FromPlane_DOUBLE(popl[iTri]);
+
+    FLOAT3D p0_Offset = DOUBLEtoFLOAT(*pVtx0) - mappingVectors.mv_vO;
+    FLOAT3D p1_Offset = DOUBLEtoFLOAT(*pVtx1) - mappingVectors.mv_vO;
+    FLOAT3D p2_Offset = DOUBLEtoFLOAT(*pVtx2) - mappingVectors.mv_vO;
+
+    FLOAT2D p0_uv(mappingVectors.mv_vU % p0_Offset, mappingVectors.mv_vV % p0_Offset);
+    FLOAT2D p1_uv(mappingVectors.mv_vU % p1_Offset, mappingVectors.mv_vV % p1_Offset);
+    FLOAT2D p2_uv(mappingVectors.mv_vU % p2_Offset, mappingVectors.mv_vV % p2_Offset);
+
+    FLOAT2D id_X = p1_uv - p0_uv;
+    FLOAT2D id_Y = p2_uv - p0_uv;
+    FLOAT2D id_T = p0_uv;
+    FLOATmatrix3D uvToIdentity;
+    uvToIdentity.matrix[0][0] = id_X(1);
+    uvToIdentity.matrix[0][1] = id_Y(1);
+    uvToIdentity.matrix[0][2] = id_T(1);
+    uvToIdentity.matrix[1][0] = id_X(2);
+    uvToIdentity.matrix[1][1] = id_Y(2);
+    uvToIdentity.matrix[1][2] = id_T(2);
+    uvToIdentity.matrix[2][0] = 0.0f;
+    uvToIdentity.matrix[2][1] = 0.0f;
+    uvToIdentity.matrix[2][2] = 1.0f;
+    uvToIdentity = InverseMatrix(uvToIdentity);
+
+    FLOAT2D p0_uvTarget(
+      +avTextureVertices[actTriangles[iTri].ct_iTVtx[0]](1),
+      -avTextureVertices[actTriangles[iTri].ct_iTVtx[0]](2));
+    FLOAT2D p1_uvTarget(
+      +avTextureVertices[actTriangles[iTri].ct_iTVtx[1]](1),
+      -avTextureVertices[actTriangles[iTri].ct_iTVtx[1]](2));
+    FLOAT2D p2_uvTarget(
+      +avTextureVertices[actTriangles[iTri].ct_iTVtx[2]](1),
+      -avTextureVertices[actTriangles[iTri].ct_iTVtx[2]](2));
+
+    FLOAT2D target_X = p1_uvTarget - p0_uvTarget;
+    FLOAT2D target_Y = p2_uvTarget - p0_uvTarget;
+    FLOAT2D target_T = p0_uvTarget;
+    FLOATmatrix3D uvToTarget;
+    uvToTarget.matrix[0][0] = target_X(1);
+    uvToTarget.matrix[0][1] = target_Y(1);
+    uvToTarget.matrix[0][2] = target_T(1);
+    uvToTarget.matrix[1][0] = target_X(2);
+    uvToTarget.matrix[1][1] = target_Y(2);
+    uvToTarget.matrix[1][2] = target_T(2);
+    uvToTarget.matrix[2][0] = 0.0f;
+    uvToTarget.matrix[2][1] = 0.0f;
+    uvToTarget.matrix[2][2] = 1.0f;
+    uvToTarget = uvToTarget * uvToIdentity;
+
+    popo[iTri].opo_amdMappings[0].md_fUoS = uvToTarget.matrix[0][0];
+    popo[iTri].opo_amdMappings[0].md_fUoT = uvToTarget.matrix[0][1];
+    popo[iTri].opo_amdMappings[0].md_fVoS = -uvToTarget.matrix[1][0];
+    popo[iTri].opo_amdMappings[0].md_fVoT = -uvToTarget.matrix[1][1];
+    popo[iTri].opo_amdMappings[0].md_fUOffset = -uvToTarget.matrix[0][2];
+    popo[iTri].opo_amdMappings[0].md_fVOffset = uvToTarget.matrix[1][2];
   }
   acmMaterials.Unlock();
 }
