@@ -108,7 +108,7 @@
     <CustomBuildStep>
       <Outputs>$(SolutionDir)..\Bin\Debug\$(InputName).dll;%(Outputs)</Outputs>
       <Command>copy Debug\$(TargetName).dll $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin\Debug</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin\Debug</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -165,7 +165,7 @@
     </Link>
     <CustomBuildStep>
       <Outputs>$(SolutionDir)..\Bin\$(InputName).dll;%(Outputs)</Outputs>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin</Message>
       <Command>copy Release\$(TargetName).dll $(SolutionDir)..\Bin\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>

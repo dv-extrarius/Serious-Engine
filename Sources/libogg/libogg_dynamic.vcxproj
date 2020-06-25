@@ -94,7 +94,7 @@
     </Link>
     <CustomBuildStep>
       <Outputs>$(SolutionDir)..\Bin\Debug\$(InputName).dll;%(Outputs)</Outputs>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin\Debug</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin\Debug</Message>
       <Command>copy Debug\$(TargetName).dll $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -147,7 +147,7 @@
     </Link>
     <CustomBuildStep>
       <Outputs>$(SolutionDir)..\Bin\$(InputName).dll;%(Outputs)</Outputs>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin</Message>
       <Command>copy Release\$(TargetName).dll $(SolutionDir)..\Bin\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>

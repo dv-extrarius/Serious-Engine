@@ -112,7 +112,7 @@
     </Link>
     <CustomBuildStep>
       <Command>copy Release\$(TargetName).exe $(SolutionDir)..\Bin\ &gt;nul </Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin</Message>
       <Outputs>$(SolutionDir)..\Bin\;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -161,7 +161,7 @@
     </Link>
     <CustomBuildStep>
       <Command>copy Debug\$(TargetName).exe $(SolutionDir)..\Bin\Debug\ &gt;nul </Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin\Debug</Message>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin\Debug</Message>
       <Outputs>$(SolutionDir)..\Bin\Debug\;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
