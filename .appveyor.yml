@@ -10,7 +10,9 @@ configuration:
   - Release
 
 before_build:
-  - cd c:\projects\SeriousEngine\Sources
+  - cd c:\projects\SeriousEngine\
+  - git submodule -q update --init
+  - cd Sources
   - GenerateAssimpSLN.bat
 
 build:
