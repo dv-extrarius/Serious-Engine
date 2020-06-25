@@ -17,7 +17,7 @@ before_build:
 
 build:
   parallel: true
-  project: All.sln
+  project: Sources\All.sln
   verbosity: normal
 
 after_build:

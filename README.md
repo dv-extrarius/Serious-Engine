@@ -1,6 +1,8 @@
 # Serious Engine
 ========================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?retina=true)](https://ci.appveyor.com/project/SeriousAlexej/Serious-Engine)
+
 This is the source code for Serious Engine v.1.10, including the following projects:
 
 * `DedicatedServer`
