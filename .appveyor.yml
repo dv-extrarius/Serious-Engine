@@ -41,7 +41,7 @@ deploy:
   description: SeriousEngine-$(appveyor_build_version)
   provider: GitHub
   auth_token:
-    secure: mET6ZcC/362vT7+SgLRmMpZDfqibxGzYwF57Rm0ioKJikkkNj8nd86kWdnP+KuRA
+    secure: 9mBaQMNtOPPb5UlUXN+du9/DCqwaeFjKd6yIRQB/Oo4BetFXdf8DpQj+OFuISjxs
   force_update: true
   on:
     appveyor_repo_tag: true
