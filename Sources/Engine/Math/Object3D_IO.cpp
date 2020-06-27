@@ -109,7 +109,6 @@ struct ConversionMaterial {
 CDynamicContainer<ConversionMaterial> acmMaterials;
 CStaticArray<ConversionTriangle> actTriangles;
 CStaticArray<FLOAT3D> avVertices;
-CStaticArray<FLOAT3D> nmNormals;
 CStaticStackArray<FLOAT3D> avDst;
 CStaticArray<FLOAT2D> avTextureVertices;
 CStaticArray<INDEX> aiRemap;
