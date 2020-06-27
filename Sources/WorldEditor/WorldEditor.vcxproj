@@ -329,9 +329,6 @@
       <FileType>RC</FileType>
     </CustomBuild>
     <CustomBuild Include="res\WorldEditorDoc.ico" />
-    <CustomBuild Include="WorldEditor.clw">
-      <FileType>Document</FileType>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc" />
