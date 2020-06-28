@@ -156,6 +156,7 @@ public:
   // find texture coordinates for an object-space point
   void GetTextureCoordinates(
     const CMappingVectors &mvDefault, const FLOAT3D &vSpace, MEX2D &vTexture) const;
+  FLOAT2D GetTextureCoordinates(const CMappingVectors& mvDefault, const FLOAT3D& vSpace) const;
   // find object-space coordinates for a texture point
   void GetSpaceCoordinates(
     const CMappingVectors &mvDefault, const MEX2D &vTexture, FLOAT3D &vSpace) const;

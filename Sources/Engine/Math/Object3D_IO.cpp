@@ -28,6 +28,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/DynamicArray.cpp>
 #include <Engine/Templates/StaticStackArray.cpp>
 
+#include <Engine/Math/TextureMapping_Utils.h>
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -109,7 +111,6 @@ struct ConversionMaterial {
 CDynamicContainer<ConversionMaterial> acmMaterials;
 CStaticArray<ConversionTriangle> actTriangles;
 CStaticArray<FLOAT3D> avVertices;
-CStaticArray<FLOAT3D> nmNormals;
 CStaticStackArray<FLOAT3D> avDst;
 CStaticArray<FLOAT2D> avTextureVertices;
 CStaticArray<INDEX> aiRemap;
@@ -648,29 +649,10 @@ void CObject3D::ConvertArraysToO3D( void)
     // copy UV coordinates to polygon texture mapping
     CMappingVectors mappingVectors;
     mappingVectors.FromPlane_DOUBLE(popl[iTri]);
-
-    FLOAT3D p0_Offset = DOUBLEtoFLOAT(*pVtx0) - mappingVectors.mv_vO;
-    FLOAT3D p1_Offset = DOUBLEtoFLOAT(*pVtx1) - mappingVectors.mv_vO;
-    FLOAT3D p2_Offset = DOUBLEtoFLOAT(*pVtx2) - mappingVectors.mv_vO;
-
-    FLOAT2D p0_uv(mappingVectors.mv_vU % p0_Offset, mappingVectors.mv_vV % p0_Offset);
-    FLOAT2D p1_uv(mappingVectors.mv_vU % p1_Offset, mappingVectors.mv_vV % p1_Offset);
-    FLOAT2D p2_uv(mappingVectors.mv_vU % p2_Offset, mappingVectors.mv_vV % p2_Offset);
-
-    FLOAT2D id_X = p1_uv - p0_uv;
-    FLOAT2D id_Y = p2_uv - p0_uv;
-    FLOAT2D id_T = p0_uv;
-    FLOATmatrix3D uvToIdentity;
-    uvToIdentity.matrix[0][0] = id_X(1);
-    uvToIdentity.matrix[0][1] = id_Y(1);
-    uvToIdentity.matrix[0][2] = id_T(1);
-    uvToIdentity.matrix[1][0] = id_X(2);
-    uvToIdentity.matrix[1][1] = id_Y(2);
-    uvToIdentity.matrix[1][2] = id_T(2);
-    uvToIdentity.matrix[2][0] = 0.0f;
-    uvToIdentity.matrix[2][1] = 0.0f;
-    uvToIdentity.matrix[2][2] = 1.0f;
-    uvToIdentity = InverseMatrix(uvToIdentity);
+    CMappingDefinition defaultMapping;
+    FLOAT2D p0_uv = defaultMapping.GetTextureCoordinates(mappingVectors, DOUBLEtoFLOAT(*pVtx0));
+    FLOAT2D p1_uv = defaultMapping.GetTextureCoordinates(mappingVectors, DOUBLEtoFLOAT(*pVtx1));
+    FLOAT2D p2_uv = defaultMapping.GetTextureCoordinates(mappingVectors, DOUBLEtoFLOAT(*pVtx2));
 
     FLOAT2D p0_uvTarget(
       +avTextureVertices[actTriangles[iTri].ct_iTVtx[0]](1),
@@ -682,28 +664,7 @@ void CObject3D::ConvertArraysToO3D( void)
       +avTextureVertices[actTriangles[iTri].ct_iTVtx[2]](1),
       -avTextureVertices[actTriangles[iTri].ct_iTVtx[2]](2));
 
-    FLOAT2D target_X = p1_uvTarget - p0_uvTarget;
-    FLOAT2D target_Y = p2_uvTarget - p0_uvTarget;
-    FLOAT2D target_T = p0_uvTarget;
-    FLOATmatrix3D uvToTarget;
-    uvToTarget.matrix[0][0] = target_X(1);
-    uvToTarget.matrix[0][1] = target_Y(1);
-    uvToTarget.matrix[0][2] = target_T(1);
-    uvToTarget.matrix[1][0] = target_X(2);
-    uvToTarget.matrix[1][1] = target_Y(2);
-    uvToTarget.matrix[1][2] = target_T(2);
-    uvToTarget.matrix[2][0] = 0.0f;
-    uvToTarget.matrix[2][1] = 0.0f;
-    uvToTarget.matrix[2][2] = 1.0f;
-    uvToTarget = uvToTarget * uvToIdentity;
-
-    popo[iTri].opo_amdMappings[0].md_fUoS = uvToTarget.matrix[0][0];
-    popo[iTri].opo_amdMappings[0].md_fUoT = uvToTarget.matrix[0][1];
-    popo[iTri].opo_amdMappings[0].md_fVoS = -uvToTarget.matrix[1][0];
-    popo[iTri].opo_amdMappings[0].md_fVoT = -uvToTarget.matrix[1][1];
-    popo[iTri].opo_amdMappings[0].md_fUOffset = -uvToTarget.matrix[0][2];
-    popo[iTri].opo_amdMappings[0].md_fVOffset = uvToTarget.matrix[1][2];
-
+    popo[iTri].opo_amdMappings[0] = GetMappingDefinitionFromReferenceToTarget({ p0_uv, p1_uv, p2_uv }, { p0_uvTarget, p1_uvTarget, p2_uvTarget });
     popo[iTri].opo_amdMappings[1] = popo[iTri].opo_amdMappings[0];
     popo[iTri].opo_amdMappings[2] = popo[iTri].opo_amdMappings[0];
   }

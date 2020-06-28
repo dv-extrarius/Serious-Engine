@@ -6,6 +6,10 @@ clone_folder: c:\projects\SeriousEngine
 
 clone_depth: 1
 
+branches:
+  only:
+    - master
+
 configuration:
   - Release
 
@@ -44,4 +48,5 @@ deploy:
     secure: 9mBaQMNtOPPb5UlUXN+du9/DCqwaeFjKd6yIRQB/Oo4BetFXdf8DpQj+OFuISjxs
   force_update: true
   on:
+    branch: master
     appveyor_repo_tag: true
