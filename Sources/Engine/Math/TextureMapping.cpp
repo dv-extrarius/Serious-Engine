@@ -216,15 +216,25 @@ void CMappingDefinition::ReadOld_t(CTStream &strm) // throw char *
 void CMappingDefinition::GetTextureCoordinates(
   const CMappingVectors &mvDefault, const FLOAT3D &vSpace, MEX2D &vTexture) const
 {
+  FLOAT2D uvCoords = GetTextureCoordinates(mvDefault, vSpace);
+  vTexture(1) = FloatToInt(uvCoords(1)*1024.0f);
+  vTexture(2) = FloatToInt(uvCoords(2)*1024.0f);
+}
+
+FLOAT2D CMappingDefinition::GetTextureCoordinates(const CMappingVectors &mvDefault, const FLOAT3D &vSpace) const
+{
   FLOAT3D vOffset = vSpace-mvDefault.mv_vO;
   FLOAT s = mvDefault.mv_vU%vOffset;
   FLOAT t = mvDefault.mv_vV%vOffset;
   FLOAT u = s*md_fUoS+t*md_fUoT;
   FLOAT v = s*md_fVoS+t*md_fVoT;
 
-  vTexture(1) = FloatToInt((u+md_fUOffset)*1024.0f);
-  vTexture(2) = FloatToInt((v+md_fVOffset)*1024.0f);
+  FLOAT2D uvCoords;
+  uvCoords(1) = u+md_fUOffset;
+  uvCoords(2) = v+md_fVOffset;
+  return uvCoords;
 }
+
 /* Find object-space coordinates for a texture point. */
 void CMappingDefinition::GetSpaceCoordinates(
   const CMappingVectors &mvDefault, const MEX2D &vTexture, FLOAT3D &vSpace) const
