@@ -1,7 +1,56 @@
 # Serious Engine
-========================
 
 [![Build status](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?retina=true)](https://ci.appveyor.com/project/SeriousAlexej/Serious-Engine)
+
+Enhanced and somewhat fixed version of engine tools (Modeler, World Editor)
+* Replaced missing `exploration3D` library with `assimp` (for importing 3D models into Modeler / World Editor)
+* Added ability to import UV maps when converting 3D model into brush (World Editor)
+* New advanced UV mapping tools for World Editor
+
+<p align="center">
+3D Importing with UV maps - General demo:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/Import3D_Demo.gif">
+</p>
+
+<p align="center">
+Advanced mapping - General demo:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/AdvancedMapping_Demo.gif">
+</p>
+
+<p align="center">
+Advanced mapping - Rotation alignment:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/AdvancedMapping_Rotate.gif">
+</p>
+
+<p align="center">
+Advanced mapping - Alignment by adjacent edge:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/AdvancedMapping_Adjacent.gif">
+</p>
+
+<p align="center">
+Advanced mapping - Alignment by tangent edge:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/AdvancedMapping_Tangent.gif">
+</p>
+
+<p align="center">
+Advanced mapping - Alignment by adjacent and tangent edges:
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/AdvancedMapping_Adjacent_Tangent.gif">
+</p>
+
+Original ReadMe:
+=======================
 
 This is the source code for Serious Engine v.1.10, including the following projects:
 
