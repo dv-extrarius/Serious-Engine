@@ -13,9 +13,6 @@
       <UniqueIdentifier>{581cfb2d-9f80-4531-a100-fb97388ad6c1}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
-    <Filter Include="Wizard Files">
-      <UniqueIdentifier>{7e7e7b5f-d4a7-4a8e-ab80-568057d12fdf}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveTextureWnd.cpp">
@@ -695,9 +692,6 @@
     </CustomBuild>
     <CustomBuild Include="res\WorldEditorDoc.ico">
       <Filter>Resource Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="WorldEditor.clw">
-      <Filter>Wizard Files</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

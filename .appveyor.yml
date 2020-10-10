@@ -1,0 +1,52 @@
+version: 1.10.{build}
+
+image: Visual Studio 2019
+
+clone_folder: c:\projects\SeriousEngine
+
+clone_depth: 1
+
+branches:
+  only:
+    - master
+
+configuration:
+  - Release
+
+before_build:
+  - cd c:\projects\SeriousEngine\
+  - git submodule -q update --init
+  - cd Sources
+  - GenerateAssimpSLN.bat
+
+build:
+  parallel: true
+  project: Sources\All.sln
+  verbosity: normal
+
+after_build:
+  - cd c:\projects\SeriousEngine\
+  - mkdir deploy
+  - xcopy /E /I Bin deploy\Bin
+  - xcopy /E /I Controls deploy\Controls
+  - xcopy /E /I Data deploy\Data
+  - xcopy /E /I Licenses deploy\Licenses
+  - xcopy /E /I Scripts deploy\Scripts
+  - xcopy /E /I VirtualTrees deploy\VirtualTrees
+  - xcopy /I ModEXT.txt deploy\
+  - xcopy /I SE1_10.gro deploy\
+
+artifacts:
+  - path: .\deploy
+    name: SeriousEngine-$(appveyor_build_version)
+    type: zip
+
+deploy:
+  description: SeriousEngine-$(appveyor_build_version)
+  provider: GitHub
+  auth_token:
+    secure: 9mBaQMNtOPPb5UlUXN+du9/DCqwaeFjKd6yIRQB/Oo4BetFXdf8DpQj+OFuISjxs
+  force_update: true
+  on:
+    branch: master
+    appveyor_repo_tag: true

@@ -727,6 +727,17 @@ BEGIN
             MENUITEM "Swap 1st and 2nd layer",      ID_SWAP_LAYERS_12
             MENUITEM "Swap 2nd and 3rd layer",      ID_SWAP_LAYERS_23
         END
+        POPUP "Advanced Mapping"
+        BEGIN
+            MENUITEM "Rotate to align next edge\tShift+R",
+                                                    ID_ADV_MAPPING_ROTATION_ALIGN
+            MENUITEM "Align by tangent edge\tAlt+N",
+                                                    ID_ADV_MAPPING_ALIGN_TANGENT
+            MENUITEM "Align by adjacent edge\tAlt+Shift+N",
+                                                    ID_ADV_MAPPING_ALIGN_ADJACENT
+            MENUITEM "Align by adjacent and tangent edges\tAlt+Shift+Ctrl+N",
+                                                    ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT
+        END
         POPUP "Polygon manipulation"
         BEGIN
             MENUITEM "Triangularize clicked polygon", 
@@ -1139,6 +1150,10 @@ BEGIN
     "J",            ID_KEY_PASTE,           VIRTKEY, NOINVERT
     "K",            ID_PASTE_TEXTURE,       VIRTKEY, NOINVERT
     "K",            ID_MENU_ALIGN_MAPPING_U, VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_ADV_MAPPING_ROTATION_ALIGN, VIRTKEY, SHIFT, NOINVERT
+    "N",            ID_ADV_MAPPING_ALIGN_TANGENT, VIRTKEY, ALT, NOINVERT
+    "N",            ID_ADV_MAPPING_ALIGN_ADJACENT, VIRTKEY, SHIFT, ALT, NOINVERT
+    "N",            ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
     "K",            ID_KEY_CTRL_SHIFT_K,    VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "L",            ID_CROSSROAD_FOR_L,     VIRTKEY, NOINVERT
@@ -3750,6 +3765,14 @@ BEGIN
                             "Selects polygons in world that contain textures that are not selected in browser\nSelects polygons in world that contain textures that are not selected in browser"
     ID_REMOVE_UNUSED_TEXTURES 
                             "Remove unused textures from all of world's polygons (from non translucent portals)\nRemove unused textures from all of world's polygons (from non translucent portals)"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    ID_ADV_MAPPING_ROTATION_ALIGN         "Rotate to align next edge (Shift+R)\nRotate to align next edge (Shift+R)"
+    ID_ADV_MAPPING_ALIGN_TANGENT          "Align by tangent edge (Alt+N)\nAlign by tangent edge (Alt+N)"
+    ID_ADV_MAPPING_ALIGN_ADJACENT         "Align by adjacent edge (Alt+Shift+N)\nAlign by adjacent edge (Alt+Shift+N)"
+    ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT "Align by adjacent and tangent edges (Alt+Shift+Ctrl+N)\nAlign by adjacent and tangent edges (Alt+Shift+Ctrl+N)"
 END
 
 STRINGTABLE DISCARDABLE 

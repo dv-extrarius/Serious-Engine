@@ -23,6 +23,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <Engine/Terrain/TerrainEditing.h>
 #include <Engine/Terrain/TerrainMisc.h>
+#include <Engine/Math/TextureMapping_Utils.h>
 
 #ifdef _DEBUG
 #undef new
@@ -345,10 +346,110 @@ BEGIN_MESSAGE_MAP(CWorldEditorView, CView)
 	ON_COMMAND(ID_TBRUSH_MINIMUM, OnTbrushMinimum)
 	ON_COMMAND(ID_TBRUSH_POSTERIZE, OnTbrushPosterize)
 	ON_COMMAND(ID_TERRAIN_PROPERTIES, OnTerrainProperties)
+  ON_COMMAND(ID_ADV_MAPPING_ROTATION_ALIGN, OnAdvMapping_AlignRotation)
+  ON_COMMAND(ID_ADV_MAPPING_ALIGN_TANGENT, OnAdvMapping_AlignTangent)
+  ON_COMMAND(ID_ADV_MAPPING_ALIGN_ADJACENT, OnAdvMapping_AlignAdjacent)
+  ON_COMMAND(ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT, OnAdvMapping_AlignAdjacentAndTangent)
 	//}}AFX_MSG_MAP
   ON_COMMAND_RANGE(ID_BUFFER01, ID_BUFFER10, OnKeyBuffer)
   ON_COMMAND_RANGE(ID_EDIT_BUFFER01, ID_EDIT_BUFFER10, OnKeyEditBuffer)
 END_MESSAGE_MAP()
+  
+namespace
+{
+  const CBrushEdge* _FindCommonEdge(const CBrushPolygon& poly_A, const CBrushPolygon& poly_B)
+  {
+    for (INDEX i = 0; i < poly_A.bpo_abpePolygonEdges.Count(); ++i)
+    {
+      const CBrushEdge* edge_A = poly_A.bpo_abpePolygonEdges[i].bpe_pbedEdge;
+      for (INDEX j = 0; j < poly_B.bpo_abpePolygonEdges.Count(); ++j)
+      {
+        const CBrushEdge* edge_B = poly_B.bpo_abpePolygonEdges[j].bpe_pbedEdge;
+        if (edge_A == edge_B)
+          return edge_A;
+      }
+    }
+    return nullptr;
+  }
+
+  const CBrushVertex* _FindAdjacentVtxExcludingEdge(const CBrushVertex* adjacent, const CBrushEdge* excluded, const CBrushPolygon& polygon)
+  {
+    for (INDEX i = 0; i < polygon.bpo_abpePolygonEdges.Count(); ++i)
+    {
+      const CBrushEdge* edge = polygon.bpo_abpePolygonEdges[i].bpe_pbedEdge;
+      if (edge == excluded)
+        continue;
+      if (edge->bed_pbvxVertex0 == adjacent)
+        return edge->bed_pbvxVertex1;
+      if (edge->bed_pbvxVertex1 == adjacent)
+        return edge->bed_pbvxVertex0;
+    }
+    return nullptr;
+  }
+
+  FLOAT2D _GetUVFromDefaultMapping(const CBrushPolygon& polygon, const CBrushVertex& vertex)
+  {
+    CMappingDefinition defaultMapping;
+    return defaultMapping.GetTextureCoordinates(polygon.bpo_pbplPlane->bpl_pwplWorking->wpl_mvRelative, vertex.bvx_vRelative);
+  }
+
+  FLOAT2D _GetUVFromCurrentMapping(const CBrushPolygon& polygon, const CBrushVertex& vertex, size_t textureChannel)
+  {
+    CMappingDefinition currentMapping = polygon.bpo_abptTextures[textureChannel].bpt_mdMapping;
+    currentMapping.md_fVoS *= -1.0f;
+    currentMapping.md_fVoT *= -1.0f;
+    currentMapping.md_fUOffset *= -1.0f;
+    return currentMapping.GetTextureCoordinates(polygon.bpo_pbplPlane->bpl_pwplWorking->wpl_mvRelative, vertex.bvx_vRelative);
+  }
+
+  using T3DMappingReference = std::array<const CBrushVertex*, 3>;
+
+  CMappingDefinition _CreateMappingFrom3DVerticesToUV(CBrushPolygon& polygon, const T3DMappingReference& reference, const TUVMappingBasis& uvTarget)
+  {
+    // find default mapping
+    FLOAT2D v0_UV = _GetUVFromDefaultMapping(polygon, *reference.at(0));
+    FLOAT2D v1_UV = _GetUVFromDefaultMapping(polygon, *reference.at(1));
+    FLOAT2D v2_UV = _GetUVFromDefaultMapping(polygon, *reference.at(2));
+
+    // now change the mapping definition
+    return GetMappingDefinitionFromReferenceToTarget({v0_UV, v1_UV, v2_UV}, uvTarget);
+  }
+
+  FLOATmatrix3D _AngleFromTo(const FLOAT2D& v1, const FLOAT2D& v2)
+  {
+    FLOAT angle = (v1 % v2) / (v1.Length() * v2.Length());
+    angle = std::acos(Clamp(angle, -1.0f, 1.0f));
+    if (v1(1) * v2(2) - v2(1) * v1(2) < 0.0f)
+      angle *= -1.0f;
+
+    FLOATmatrix3D matrix;
+    matrix(1, 1) = std::cos(angle);
+    matrix(1, 2) = -std::sin(angle);
+    matrix(2, 1) = std::sin(angle);
+    matrix(2, 2) = std::cos(angle);
+    matrix(1, 3) = 0.0f;
+    matrix(2, 3) = 0.0f;
+    matrix(3, 1) = 0.0f;
+    matrix(3, 2) = 0.0f;
+    matrix(3, 3) = 1.0f;
+    return matrix;
+  }
+
+  FLOATmatrix3D _TranslationFromTo(const FLOAT2D& v1, const FLOAT2D& v2)
+  {
+    FLOATmatrix3D matrix;
+    matrix(1, 1) = 1.0f;
+    matrix(1, 2) = 0.0f;
+    matrix(2, 1) = 0.0f;
+    matrix(2, 2) = 1.0f;
+    matrix(1, 3) = v2(1)-v1(1);
+    matrix(2, 3) = v2(2)-v1(2);
+    matrix(3, 1) = 0.0f;
+    matrix(3, 2) = 0.0f;
+    matrix(3, 3) = 1.0f;
+    return matrix;
+  }
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CWorldEditorView construction/destruction
@@ -9907,6 +10008,194 @@ void CWorldEditorView::OnMenuAlignMappingV()
   pDoc->m_chSelections.MarkChanged();
   pDoc->SetModifiedFlag( TRUE);
   pDoc->UpdateAllViews( NULL);
+}
+
+void CWorldEditorView::OnAdvMapping_AlignRotation()
+{
+  CWorldEditorDoc* pDoc = GetDocument();
+  if (pDoc->m_selPolygonSelection.Count() != 1)
+    return;
+
+  static CBrushPolygon* prevPolygon = nullptr;
+  static size_t currEdgeIndex = 0;
+
+  CBrushPolygon& currentPolygon = pDoc->m_selPolygonSelection.GetFirst();
+  if (prevPolygon == &currentPolygon)
+    currEdgeIndex = (currEdgeIndex + 1) % currentPolygon.bpo_abpePolygonEdges.Count();
+  else
+    currEdgeIndex = 0;
+  prevPolygon = &currentPolygon;
+
+  const auto* currentEdge = currentPolygon.bpo_abpePolygonEdges[currEdgeIndex].bpe_pbedEdge;
+  const CBrushVertex* v0 = currentEdge->bed_pbvxVertex0;
+  const CBrushVertex* v1 = currentEdge->bed_pbvxVertex1;
+  const CBrushVertex* v2 = _FindAdjacentVtxExcludingEdge(v0, currentEdge, currentPolygon);
+
+  FLOAT2D v0_UV = _GetUVFromCurrentMapping(currentPolygon, *v0, pDoc->m_iTexture);
+  FLOAT2D v1_UV = _GetUVFromCurrentMapping(currentPolygon, *v1, pDoc->m_iTexture);
+  FLOAT2D v2_UV = _GetUVFromCurrentMapping(currentPolygon, *v2, pDoc->m_iTexture);
+
+  FLOATmatrix3D moveToZero = _TranslationFromTo(v0_UV, FLOAT2D(0.0f, 0.0f));
+  FLOATmatrix3D rotateV1ToOX = _AngleFromTo(v1_UV - v0_UV, FLOAT2D(1.0f, 0.0f));
+
+  FLOATmatrix3D alignToOX = rotateV1ToOX * moveToZero;
+  FLOAT3D v1_UV_3D = FLOAT3D(v1_UV(1), v1_UV(2), 1.0f) * alignToOX;
+  FLOAT3D v2_UV_3D = FLOAT3D(v2_UV(1), v2_UV(2), 1.0f) * alignToOX;
+
+  FLOAT2D v0Target_UV(0.0f, 0.0f);
+  FLOAT2D v1Target_UV(v1_UV_3D(1), v1_UV_3D(2));
+  FLOAT2D v2Target_UV(v2_UV_3D(1), v2_UV_3D(2));
+
+  CMappingDefinition& mapping = currentPolygon.bpo_abptTextures[pDoc->m_iTexture].bpt_mdMapping;
+  mapping = _CreateMappingFrom3DVerticesToUV(currentPolygon, { v0, v1, v2 }, { v0Target_UV, v1Target_UV, v2Target_UV });
+
+  pDoc->m_chSelections.MarkChanged();
+  pDoc->SetModifiedFlag(TRUE);
+  pDoc->UpdateAllViews(NULL);
+}
+
+void CWorldEditorView::OnAdvMapping_AlignTangent()
+{
+  CWorldEditorDoc* pDoc = GetDocument();
+  if (pDoc->m_selPolygonSelection.Count() < 2)
+    return;
+
+  CDynamicContainerIterator<CBrushPolygon> iter_neighbor(pDoc->m_selPolygonSelection);
+  CDynamicContainerIterator<CBrushPolygon> iter_current(pDoc->m_selPolygonSelection);
+  for (iter_current.MoveToNext(); !iter_current.IsPastEnd(); iter_current.MoveToNext(), iter_neighbor.MoveToNext())
+  {
+    const CBrushPolygon& polygonNeighbor = *iter_neighbor;
+    CBrushPolygon& polygonCurrent = *iter_current;
+
+    auto* commonEdge = _FindCommonEdge(polygonNeighbor, polygonCurrent);
+    if (!commonEdge)
+      continue;
+
+    const CBrushVertex* v0 = commonEdge->bed_pbvxVertex0;
+    const CBrushVertex* v1 = commonEdge->bed_pbvxVertex1;
+    const CBrushVertex* vSideNeighbor = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonNeighbor);
+    const CBrushVertex* vSideCurrent = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonCurrent);
+
+    if (!vSideNeighbor || !vSideCurrent || !v0 || !v1)
+      continue;
+
+    FLOAT2D v0_UV = _GetUVFromDefaultMapping(polygonCurrent, *v0);
+    FLOAT2D v1_UV = _GetUVFromDefaultMapping(polygonCurrent, *v1);
+    FLOAT2D v2_UV = _GetUVFromDefaultMapping(polygonCurrent, *vSideCurrent);
+
+    // find desired mapping
+    FLOAT2D v0Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v0, pDoc->m_iTexture);
+    FLOAT2D v1Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v1, pDoc->m_iTexture);
+    FLOAT2D vSideNeighbor_UV = _GetUVFromCurrentMapping(polygonNeighbor, *vSideNeighbor, pDoc->m_iTexture);
+
+    FLOAT3D v1Delta_UV = FLOAT3D(v1Target_UV(1) - v0Target_UV(1), v1Target_UV(2) - v0Target_UV(2), 1.0f);
+
+    FLOATmatrix3D rotateV1ToV2 = _AngleFromTo(v1_UV - v0_UV, v2_UV - v0_UV);
+    FLOAT3D v2Delta_UV = v1Delta_UV * rotateV1ToV2;
+    v2Delta_UV *= (v2_UV - v0_UV).Length() / (v1_UV - v0_UV).Length();
+
+    FLOATmatrix3D rotateToTangent = _AngleFromTo(FLOAT2D(v2Delta_UV(1), v2Delta_UV(2)), v0Target_UV - vSideNeighbor_UV);
+    v1Delta_UV = v1Delta_UV * rotateToTangent;
+    v2Delta_UV = v2Delta_UV * rotateToTangent;
+    v1Target_UV = v0Target_UV + FLOAT2D(v1Delta_UV(1), v1Delta_UV(2));
+    FLOAT2D vSideTarget_UV = v0Target_UV + FLOAT2D(v2Delta_UV(1), v2Delta_UV(2));
+
+    CMappingDefinition& mapping = polygonCurrent.bpo_abptTextures[pDoc->m_iTexture].bpt_mdMapping;
+    mapping = _CreateMappingFrom3DVerticesToUV(polygonCurrent, { v0, v1, vSideCurrent }, { v0Target_UV, v1Target_UV, vSideTarget_UV });
+  }
+
+  pDoc->m_chSelections.MarkChanged();
+  pDoc->SetModifiedFlag(TRUE);
+  pDoc->UpdateAllViews(NULL);
+}
+
+void CWorldEditorView::OnAdvMapping_AlignAdjacent()
+{
+  CWorldEditorDoc* pDoc = GetDocument();
+  if (pDoc->m_selPolygonSelection.Count() < 2)
+    return;
+
+  CDynamicContainerIterator<CBrushPolygon> iter_neighbor(pDoc->m_selPolygonSelection);
+  CDynamicContainerIterator<CBrushPolygon> iter_current(pDoc->m_selPolygonSelection);
+  for (iter_current.MoveToNext(); !iter_current.IsPastEnd(); iter_current.MoveToNext(), iter_neighbor.MoveToNext())
+  {
+    const CBrushPolygon& polygonNeighbor = *iter_neighbor;
+    CBrushPolygon& polygonCurrent = *iter_current;
+
+    auto* commonEdge = _FindCommonEdge(polygonNeighbor, polygonCurrent);
+    if (!commonEdge)
+      continue;
+
+    const CBrushVertex* v0 = commonEdge->bed_pbvxVertex0;
+    const CBrushVertex* v1 = commonEdge->bed_pbvxVertex1;
+    const CBrushVertex* vSideNeighbor = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonNeighbor);
+    const CBrushVertex* vSideCurrent = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonCurrent);
+
+    if (!vSideNeighbor || !vSideCurrent || !v0 || !v1)
+      continue;
+
+    FLOAT2D v0_UV = _GetUVFromDefaultMapping(polygonCurrent, *v0);
+    FLOAT2D v1_UV = _GetUVFromDefaultMapping(polygonCurrent, *v1);
+    FLOAT2D v2_UV = _GetUVFromDefaultMapping(polygonCurrent, *vSideCurrent);
+
+    // find desired mapping
+    FLOAT2D v0Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v0, pDoc->m_iTexture);
+    FLOAT2D v1Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v1, pDoc->m_iTexture);
+
+    FLOATmatrix3D rotateV1ToV2 = _AngleFromTo(v1_UV - v0_UV, v2_UV - v0_UV);
+    FLOAT3D v2Delta_UV = FLOAT3D(v1Target_UV(1) - v0Target_UV(1), v1Target_UV(2) - v0Target_UV(2), 1.0f) * rotateV1ToV2;
+    v2Delta_UV *= (v2_UV - v0_UV).Length() / (v1_UV - v0_UV).Length();
+    FLOAT2D vSideTarget_UV = v0Target_UV + FLOAT2D(v2Delta_UV(1), v2Delta_UV(2));
+
+    CMappingDefinition& mapping = polygonCurrent.bpo_abptTextures[pDoc->m_iTexture].bpt_mdMapping;
+    mapping = _CreateMappingFrom3DVerticesToUV(polygonCurrent, { v0, v1, vSideCurrent }, { v0Target_UV, v1Target_UV, vSideTarget_UV });
+  }
+
+  pDoc->m_chSelections.MarkChanged();
+  pDoc->SetModifiedFlag(TRUE);
+  pDoc->UpdateAllViews(NULL);
+}
+
+void CWorldEditorView::OnAdvMapping_AlignAdjacentAndTangent()
+{
+  CWorldEditorDoc* pDoc = GetDocument();
+  if (pDoc->m_selPolygonSelection.Count() < 2)
+    return;
+
+  CDynamicContainerIterator<CBrushPolygon> iter_neighbor(pDoc->m_selPolygonSelection);
+  CDynamicContainerIterator<CBrushPolygon> iter_current(pDoc->m_selPolygonSelection);
+  for (iter_current.MoveToNext(); !iter_current.IsPastEnd(); iter_current.MoveToNext(), iter_neighbor.MoveToNext())
+  {
+    const CBrushPolygon& polygonNeighbor = *iter_neighbor;
+    CBrushPolygon& polygonCurrent = *iter_current;
+
+    auto* commonEdge = _FindCommonEdge(polygonNeighbor, polygonCurrent);
+    if (!commonEdge)
+      continue;
+
+    const CBrushVertex* v0 = commonEdge->bed_pbvxVertex0;
+    const CBrushVertex* v1 = commonEdge->bed_pbvxVertex1;
+    const CBrushVertex* vSideNeighbor = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonNeighbor);
+    const CBrushVertex* vSideCurrent = _FindAdjacentVtxExcludingEdge(v0, commonEdge, polygonCurrent);
+
+    if (!vSideNeighbor || !vSideCurrent || !v0 || !v1)
+      continue;
+
+    // find desired mapping
+    FLOAT2D v0Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v0, pDoc->m_iTexture);
+    FLOAT2D v1Target_UV = _GetUVFromCurrentMapping(polygonNeighbor, *v1, pDoc->m_iTexture);
+    FLOAT2D vSideTarget_UV = _GetUVFromCurrentMapping(polygonNeighbor, *vSideNeighbor, pDoc->m_iTexture);
+    vSideTarget_UV = v0Target_UV - vSideTarget_UV;
+    vSideTarget_UV *= (vSideCurrent->bvx_vRelative - v0->bvx_vRelative).Length() / (vSideNeighbor->bvx_vRelative - v0->bvx_vRelative).Length();
+    vSideTarget_UV += v0Target_UV;
+
+    CMappingDefinition& mapping = polygonCurrent.bpo_abptTextures[pDoc->m_iTexture].bpt_mdMapping;
+    mapping = _CreateMappingFrom3DVerticesToUV(polygonCurrent, { v0, v1, vSideCurrent }, { v0Target_UV, v1Target_UV, vSideTarget_UV });
+  }
+
+  pDoc->m_chSelections.MarkChanged();
+  pDoc->SetModifiedFlag(TRUE);
+  pDoc->UpdateAllViews(NULL);
 }
 
 

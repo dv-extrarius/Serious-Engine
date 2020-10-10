@@ -1304,7 +1304,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define ID_TERRAIN_PROPERTIES           33389
 #define ID_EXPORT_PLACEMENTS            33391
 #define ID_EXPORT_ENTITIES              33392
-#define ID_ACCELERATOR33402             33402
+
+#define ID_ADV_MAPPING_ROTATION_ALIGN   33402
+#define ID_ADV_MAPPING_ALIGN_TANGENT    33403
+#define ID_ADV_MAPPING_ALIGN_ADJACENT   33404
+#define ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT 33405
+
+#define ID_ACCELERATOR33406             33406
+
 #define IDW_TOOLBAR_MAIN                0xE800
 #define IDW_STATUSBAR                   0xE801
 #define IDW_TOOLBAR_CSG                 0xE802

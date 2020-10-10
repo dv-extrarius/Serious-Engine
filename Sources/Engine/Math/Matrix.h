@@ -466,6 +466,27 @@ Vector<Type, iRows> Matrix<Type, iRows, iColumns>::GetColumn(Type iColumn) const
   return v;
 }
 
+template<class Type>
+Matrix<Type, 3, 3> InverseMatrix(const Matrix<Type, 3, 3>& m)
+{
+  Type oneOverDeterminant = static_cast<Type>(1.0 / (
+    + m.matrix[0][0] * (m.matrix[1][1] * m.matrix[2][2] - m.matrix[2][1] * m.matrix[1][2])
+    - m.matrix[1][0] * (m.matrix[0][1] * m.matrix[2][2] - m.matrix[2][1] * m.matrix[0][2])
+    + m.matrix[2][0] * (m.matrix[0][1] * m.matrix[1][2] - m.matrix[1][1] * m.matrix[0][2])));
+
+  Matrix<Type, 3, 3> inverse;
+  inverse.matrix[0][0] = +(m.matrix[1][1] * m.matrix[2][2] - m.matrix[2][1] * m.matrix[1][2]) * oneOverDeterminant;
+  inverse.matrix[1][0] = -(m.matrix[1][0] * m.matrix[2][2] - m.matrix[2][0] * m.matrix[1][2]) * oneOverDeterminant;
+  inverse.matrix[2][0] = +(m.matrix[1][0] * m.matrix[2][1] - m.matrix[2][0] * m.matrix[1][1]) * oneOverDeterminant;
+  inverse.matrix[0][1] = -(m.matrix[0][1] * m.matrix[2][2] - m.matrix[2][1] * m.matrix[0][2]) * oneOverDeterminant;
+  inverse.matrix[1][1] = +(m.matrix[0][0] * m.matrix[2][2] - m.matrix[2][0] * m.matrix[0][2]) * oneOverDeterminant;
+  inverse.matrix[2][1] = -(m.matrix[0][0] * m.matrix[2][1] - m.matrix[2][0] * m.matrix[0][1]) * oneOverDeterminant;
+  inverse.matrix[0][2] = +(m.matrix[0][1] * m.matrix[1][2] - m.matrix[1][1] * m.matrix[0][2]) * oneOverDeterminant;
+  inverse.matrix[1][2] = -(m.matrix[0][0] * m.matrix[1][2] - m.matrix[1][0] * m.matrix[0][2]) * oneOverDeterminant;
+  inverse.matrix[2][2] = +(m.matrix[0][0] * m.matrix[1][1] - m.matrix[1][0] * m.matrix[0][1]) * oneOverDeterminant;
+
+  return inverse;
+}
 
 // helper functions for converting between FLOAT and DOUBLE matrices
 __forceinline DOUBLEmatrix3D FLOATtoDOUBLE(const FLOATmatrix3D &mf)

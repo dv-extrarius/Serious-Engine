@@ -3,6 +3,7 @@
 *.lo
 *.o
 *.obj
+*.iobj
 
 # Precompiled Headers
 *.gch
@@ -12,6 +13,7 @@
 *.so
 *.dylib
 *.dll
+*.p
 
 # Fortran module files
 *.mod
@@ -40,6 +42,7 @@ Debug/
 *.map
 *.opensdf
 *.pdb
+*.ipdb
 *.sbr
 *.suo
 *.tlog
@@ -47,6 +50,10 @@ Debug/
 *.hm
 *.exp
 *.res
+*.vcxproj.user
+*.vcxproj.FileListAbsolute.txt
+*.bsc
+*.cnt
 
 # Generated configuration files
 *.plr

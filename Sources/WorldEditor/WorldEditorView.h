@@ -578,6 +578,11 @@ public:
 	afx_msg void OnTbrushMinimum();
 	afx_msg void OnTbrushPosterize();
 	afx_msg void OnTerrainProperties();
+	
+  afx_msg void OnAdvMapping_AlignRotation();
+  afx_msg void OnAdvMapping_AlignTangent();
+  afx_msg void OnAdvMapping_AlignAdjacent();
+  afx_msg void OnAdvMapping_AlignAdjacentAndTangent();
 	//}}AFX_MSG
 
   afx_msg void OnKeyBuffer(UINT nID);

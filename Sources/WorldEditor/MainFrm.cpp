@@ -715,7 +715,6 @@ void CMainFrame::OnInitMenu(CMenu* pMenu)
   CMDIFrameWnd::OnInitMenu(pMenu);
 }
 
-
 void CMainFrame::CustomColorPicker( PIX pixX, PIX pixY)
 {
   // calculate palette window's rectangle
@@ -806,7 +805,7 @@ void CMainFrame::CustomColorPicker( PIX pixX, PIX pixY)
     m_pColorPalette = new CColorPaletteWnd;
     // create window
     BOOL bResult = m_pColorPalette->CreateEx( WS_EX_TOOLWINDOW,
-      NULL, L"Palette", WS_CHILD|WS_POPUP|WS_VISIBLE,
+      NULL, L"Palette", WS_POPUP|WS_VISIBLE,
       rectWindow.left, rectWindow.top, rectWindow.Width(), rectWindow.Height(),
       m_hWnd, NULL, NULL);
     if( !bResult)
