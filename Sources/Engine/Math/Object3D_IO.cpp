@@ -35,8 +35,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <assimp/postprocess.h>
 #include <assimp/mesh.h>
 
+#include <limits>
 #include <unordered_map>
 #include <vector>
+
+#ifdef max
+#undef max
+#endif
 
 namespace
 {
@@ -435,10 +440,8 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
         {
           acmMaterials[iNewMaterial].cm_strName = CTString(materialName.C_Str());
           // get color
-          aiColor3D color(0.f, 0.f, 0.f);
-          aiSceneMain->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-
-          COLOR colColor = CLR_CLRF(RGB(UBYTE(color.r * 255), UBYTE(color.g * 255), UBYTE(color.b * 255)));
+          const double materialCoefficient = static_cast<double>(i+1) / aiSceneMain->mNumMeshes;
+          COLOR colColor = static_cast<COLOR>(std::numeric_limits<COLOR>::max() * materialCoefficient);
           acmMaterials[iNewMaterial].cm_colColor = colColor;
         }
         else
