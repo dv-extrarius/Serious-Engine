@@ -31,10 +31,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Math/TextureMapping_Utils.h>
 
 #include <assimp/Importer.hpp>
+#include <assimp/importerdesc.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/mesh.h>
 
+#include <algorithm>
 #include <limits>
 #include <unordered_map>
 #include <vector>
@@ -144,42 +146,6 @@ CObjectSectorLock::~CObjectSectorLock() {
 }
 
 //--------------------------------------------------------------------------------------------
-// function makes Little-Big indian conversion of 4 bytes and returns valid SLONG
-inline SLONG ConvertLong( SBYTE *pfm)
-{
-  UBYTE i;
-  UBYTE ret_long[ 4];
-
-  for( i=0; i<4; i++)
-    ret_long[ i] = *((UBYTE *) pfm + 3 - i);
-  return( *((SLONG *) ret_long) );
-};
-
-//--------------------------------------------------------------------------------------------
-// function makes Little-Big indian conversion of 2 bytes and returns valid WORD
-inline INDEX ConvertWord( SBYTE *pfm)
-{
-  char aret_word[ 2];
-
-  aret_word[ 0] = *(pfm+1);
-  aret_word[ 1] = *(pfm+0);
-  INDEX ret_word = (INDEX) *((SWORD *) aret_word);
-	return( ret_word);
-};
-
-//--------------------------------------------------------------------------------------------
-// function makes Little-Big indian conversion of 4 bytes representing float and returns valid float
-inline float ConvertFloat( SBYTE *pfm)
-{
-  UBYTE i;
-  char float_no[ 4];
-
-  for( i=0; i<4; i++)
-    float_no[ i] = *( pfm + 3 - i);
-  return( *((float *) float_no) );
-};
-
-//--------------------------------------------------------------------------------------------
 // function recognizes and loads many 3D file formats, throws char* errors
 BOOL _bBatchLoading = FALSE;
 
@@ -192,6 +158,35 @@ void CObject3D::BatchLoading_t(BOOL bOn)
   }
 
   _bBatchLoading = bOn;
+}
+
+const std::vector<CObject3D::TFormatDescr>& CObject3D::GetSupportedFormats()
+{
+  static std::vector<TFormatDescr> formats;
+
+  if (formats.empty())
+  {
+    Assimp::Importer importer;
+    for (size_t i = 0; i < importer.GetImporterCount(); ++i)
+    {
+      const aiImporterDesc* pDescription = importer.GetImporterInfo(i);
+      TFormatDescr descr;
+      descr.first = pDescription->mName;
+      descr.second = "*.";
+      for (const char* c = pDescription->mFileExtensions; *c; ++c)
+      {
+        if (std::isspace(*c))
+          descr.second += ";*.";
+        else
+          descr.second += *c;
+      }
+      descr.first += " (" + descr.second + ")";
+      formats.emplace_back(std::move(descr));
+    }
+    std::sort(formats.begin(), formats.end(), [](const TFormatDescr& lhs, const TFormatDescr& rhs) { return lhs.first < rhs.first; });
+  }
+
+  return formats;
 }
 
 void CObject3D::LoadAny3DFormat_t(const CTFileName &fnmFileName, const FLOATmatrix3D &mTransform)

@@ -26,6 +26,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Math/TextureMapping.h>
 #include <Engine/Math/Projection.h>
 #include <Engine/Templates/BSP.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 // a vertex in 3d object
 class CObjectVertex : public DOUBLE3D {
@@ -338,6 +341,9 @@ public:
  */
 class ENGINE_API CObject3D {
 public:
+  using TFormatDescr = std::pair<std::string, std::string>;
+  static const std::vector<TFormatDescr>& GetSupportedFormats();
+
   /* Remove sectors with no polygons. */
   void RemoveEmptySectors(void);
 
