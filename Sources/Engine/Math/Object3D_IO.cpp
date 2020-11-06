@@ -50,9 +50,9 @@ namespace
     std::size_t operator()(const aiVector3D& vec3d) const
     {
       std::size_t result = 0;
-      Vector<ai_real, 3>::HashCombine(result, vec3d.x);
-      Vector<ai_real, 3>::HashCombine(result, vec3d.y);
-      Vector<ai_real, 3>::HashCombine(result, vec3d.z);
+      HashCombine(result, vec3d.x);
+      HashCombine(result, vec3d.y);
+      HashCombine(result, vec3d.z);
       return result;
     }
   };

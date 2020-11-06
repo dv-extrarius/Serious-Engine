@@ -1306,10 +1306,36 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
     ms.ms_ulRenderingFlags = SRF_DIFFUSE|SRF_NEW_TEXTURE_FORMAT;
 	}
 
-  std::unordered_map<FLOAT2D, INDEX, FLOAT2D::Hasher> uniqueTexCoords;
+  struct VertexRemap
+  {
+    FLOAT2D uv;
+    INDEX material;
+    INDEX global;
+
+    bool operator == (const VertexRemap& other) const
+    {
+      return uv == other.uv && material == other.material && global == other.global;
+    }
+
+    struct Hasher
+    {
+      size_t operator()(const VertexRemap& v) const
+      {
+        size_t result = FLOAT2D::Hasher()(v.uv);
+        HashCombine(result, v.material);
+        HashCombine(result, v.global);
+        return result;
+      }
+    };
+  };
+
+  std::unordered_map<VertexRemap, INDEX, VertexRemap::Hasher> uniqueTexCoords;
   std::vector<FLOAT2D> orderedUniqueTexCoords;
+  std::vector<INDEX> texCoordsRemap;
   {FOREACHINDYNAMICARRAY(pO3D->ob_aoscSectors[0].osc_aopoPolygons, CObjectPolygon, it1)
   {
+    INDEX iPolySurface = pO3D->ob_aoscSectors[0].osc_aomtMaterials.Index(it1->opo_Material);
+
     CMappingVectors mappingVectors;
     mappingVectors.FromPlane_DOUBLE(*(it1->opo_Plane));
     CMappingDefinition currentMapping = it1->opo_amdMappings[0];
@@ -1322,10 +1348,19 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
       DOUBLE3D* vtxPos = it2->ope_Edge->oed_Vertex0;
       FLOAT2D vtxUV = currentMapping.GetTextureCoordinates(mappingVectors, DOUBLEtoFLOAT(*vtxPos));
 
-      if (uniqueTexCoords.find(vtxUV) == uniqueTexCoords.end())
+      INDEX globalIndex = pO3D->ob_aoscSectors[0].osc_aovxVertices.Index(it2->ope_Edge->oed_Vertex0);
+
+      VertexRemap vertex_remap{ vtxUV, iPolySurface, globalIndex };
+      auto found_pos = uniqueTexCoords.find(vertex_remap);
+      if (found_pos == uniqueTexCoords.end())
       {
-        uniqueTexCoords[vtxUV] = orderedUniqueTexCoords.size();
+        uniqueTexCoords[vertex_remap] = orderedUniqueTexCoords.size();
+        texCoordsRemap.push_back(orderedUniqueTexCoords.size());
         orderedUniqueTexCoords.push_back(vtxUV);
+      }
+      else
+      {
+        texCoordsRemap.push_back(found_pos->second);
       }
     }
   }}
@@ -1335,6 +1370,7 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
   for (size_t i = 0; i < orderedUniqueTexCoords.size(); ++i)
   {
     FLOAT2D uv_coord = orderedUniqueTexCoords[i];
+
     uv_coord(1) *= edm_md.md_Width / 1024.0f;
     uv_coord(2) *= edm_md.md_Height / 1024.0f;
 
@@ -1349,6 +1385,7 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
    * Now we intend to create data for all polygons (that includes setting polygon's
    * texture and transformed vertex ptrs)
    */
+  INDEX mpvct = 0;
   for (i = 0; i < pmmpi->mmpi_PolygonsCt; i++)				// loop all model polygons
   {
     struct ModelPolygon* pmp = &pmmpi->mmpi_Polygons[i];		// ptr to activ model polygon
@@ -1357,13 +1394,6 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
       pO3D->ob_aoscSectors[0].osc_aopoPolygons[i].opo_Material->omt_Color | CT_OPAQUE; // copy surface color, set no alpha
 
     auto& o3d_polygon = pO3D->ob_aoscSectors[0].osc_aopoPolygons[i];
-
-    CMappingVectors mappingVectors;
-    mappingVectors.FromPlane_DOUBLE(*o3d_polygon.opo_Plane);
-    CMappingDefinition currentMapping = o3d_polygon.opo_amdMappings[0];
-    currentMapping.md_fVoS *= -1.0f;
-    currentMapping.md_fVoT *= -1.0f;
-    currentMapping.md_fUOffset *= -1.0f;
 
     auto& polygon_edges = o3d_polygon.opo_PolygonEdges;
     INDEX ctVertices = polygon_edges.Count(); // set no of polygon's vertices
@@ -1379,9 +1409,8 @@ void CEditModel::AddMipModel(	CObject3D *pO3D)
       pmp->mp_PolygonVertices[j].mpv_ptvTransformedVertex =
         &edm_md.md_TransformedVertices[(INDEX)o3d_vertex->ovx_Tag]; // remapped ptr to transformed vertex
 
-      FLOAT2D vtxUV = currentMapping.GetTextureCoordinates(mappingVectors, DOUBLEtoFLOAT(*o3d_vertex));
       pmp->mp_PolygonVertices[j].mpv_ptvTextureVertex =
-        &pmmpi->mmpi_TextureVertices[uniqueTexCoords.at(vtxUV)];	// ptr to unique vertex in surface
+        &pmmpi->mmpi_TextureVertices[texCoordsRemap[mpvct++]];
     }
   }
 

@@ -96,19 +96,13 @@ public:
     return strm;
   }
 
-  static void HashCombine(size_t& seed, Type v)
-  {
-    std::hash<Type> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  }
-
   struct Hasher
   {
     size_t operator()(const Vector<Type, iDimensions>& v) const
     {
       size_t result = 0;
       for (size_t i = 0; i < iDimensions; ++i)
-        Vector<Type, iDimensions>::HashCombine(result, v.vector[i]);
+        HashCombine<Type>(result, v.vector[i]);
       return result;
     }
   };
