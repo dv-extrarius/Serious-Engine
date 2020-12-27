@@ -37,8 +37,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <assimp/mesh.h>
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 #ifdef max
@@ -47,6 +49,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 namespace
 {
+  std::vector<aiMesh*> validMeshes;
+
   struct aiHasher
   {
     std::size_t operator()(const aiVector3D& vec3d) const
@@ -59,27 +63,28 @@ namespace
     }
   };
 
-  INDEX AI_GetNumFaces(const aiScene* aiSceneMain)
+  INDEX AI_GetNumFaces(const std::vector<aiMesh*>& meshes)
   {
     INDEX faces = 0;
-    for (size_t i = 0; i < aiSceneMain->mNumMeshes; ++i)
-      faces += aiSceneMain->mMeshes[i]->mNumFaces;
+    for (auto* mesh : meshes)
+      faces += mesh->mNumFaces;
     return faces;
   }
 
-  BOOL AI_SceneIsValid(const aiScene* aiSceneMain)
+  bool AI_FillValidMeshes(const aiScene* aiSceneMain)
   {
-    INDEX nonEmptyMeshes = 0;
-    INDEX nonEmptyWithUV = 0;
     for (size_t i = 0; i < aiSceneMain->mNumMeshes; ++i)
       if (aiSceneMain->mMeshes[i]->HasFaces())
       {
-        ++nonEmptyMeshes;
-        if (aiSceneMain->mMeshes[i]->HasTextureCoords(0))
-          ++nonEmptyWithUV;
+        for (size_t j = 0; j < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++j)
+          if (aiSceneMain->mMeshes[i]->HasTextureCoords(j))
+          {
+            validMeshes.push_back(aiSceneMain->mMeshes[i]);
+            break;
+          }
       }
 
-    return nonEmptyWithUV == nonEmptyMeshes && nonEmptyMeshes > 0;
+    return !validMeshes.empty();
   }
 } // anonymous namespace
 
@@ -111,7 +116,7 @@ CStaticArray<ConversionTriangle> actTriangles;
 CStaticArray<FLOAT3D> avVertices;
 CStaticStackArray<FLOAT3D> avDst;
 CStaticArray<FLOAT2D> avTextureVertices[3];
-CStaticArray<INDEX> aiRemap;
+std::map<aiMesh*, std::array<unsigned int, 3>> uvChannels;
 
 /////////////////////////////////////////////////////////////////////////////
 // Helper functions
@@ -241,9 +246,9 @@ void CObject3D::LoadAny3DFormat_t(const CTFileName &fnmFileName, const FLOATmatr
 void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSceneMain)
 {
   // all polygons must be triangles
-  if(!AI_SceneIsValid(aiSceneMain))
+  if(!AI_FillValidMeshes(aiSceneMain))
   {
-    throw("Error: UV map must be in channel 0!");
+    throw("Error: model has no UV map!");
   }
 
   // check if we need flipping (if matrix is flipping, polygons need to be flipped)
@@ -254,12 +259,23 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
     m(1,3)*(m(2,1)*m(3,2)-m(2,2)*m(3,1));
   FLOAT bFlipped = fDet<0;
 
+  // ------------  Find UV map indices
+  for (auto* mesh : validMeshes)
+  {
+    auto& coordsRemap = uvChannels[mesh];
+    coordsRemap = { AI_MAX_NUMBER_OF_TEXTURECOORDS, AI_MAX_NUMBER_OF_TEXTURECOORDS , AI_MAX_NUMBER_OF_TEXTURECOORDS };
+    for (size_t j = 0, uvIndex = 0; uvIndex < 3 && j < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++j)
+    {
+      if (mesh->HasTextureCoords(j))
+        coordsRemap[uvIndex++] = j;
+    }
+  }
+
   // ------------  Convert object vertices (coordinates)
   std::unordered_map<aiVector3D, INDEX, aiHasher> uniqueVertices;
   std::vector<aiVector3D*> orderedUniqueVertices;
-  for (size_t i = 0; i < aiSceneMain->mNumMeshes; ++i)
+  for (auto* mesh : validMeshes)
   {
-    auto* mesh = aiSceneMain->mMeshes[i];
     for (size_t v = 0; v < mesh->mNumVertices; ++v)
     {
       if (uniqueVertices.find(mesh->mVertices[v]) == uniqueVertices.end())
@@ -284,18 +300,18 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
   for (size_t iUVMapIndex = 0; iUVMapIndex < 3; ++iUVMapIndex)
   {
     std::vector<aiVector3D*> orderedUniqueTexCoords;
-    for (size_t i = 0; i < aiSceneMain->mNumMeshes; ++i)
+    for (auto* mesh : validMeshes)
     {
-      auto* mesh = aiSceneMain->mMeshes[i];
-      if (!mesh->HasTextureCoords(iUVMapIndex))
+      size_t uv = uvChannels[mesh][iUVMapIndex];
+      if (!mesh->HasTextureCoords(uv))
         continue;
 
       for (size_t v = 0; v < mesh->mNumVertices; ++v)
       {
-        if (uniqueTexCoords[iUVMapIndex].find(mesh->mTextureCoords[iUVMapIndex][v]) == uniqueTexCoords[iUVMapIndex].end())
+        if (uniqueTexCoords[iUVMapIndex].find(mesh->mTextureCoords[uv][v]) == uniqueTexCoords[iUVMapIndex].end())
         {
-          uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][v]] = orderedUniqueTexCoords.size();
-          orderedUniqueTexCoords.push_back(&mesh->mTextureCoords[iUVMapIndex][v]);
+          uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][v]] = orderedUniqueTexCoords.size();
+          orderedUniqueTexCoords.push_back(&mesh->mTextureCoords[uv][v]);
         }
       }
     }
@@ -310,15 +326,15 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
 
   // ------------ Organize triangles as list of surfaces
   // allocate triangles
-  actTriangles.New(AI_GetNumFaces(aiSceneMain));
+  actTriangles.New(AI_GetNumFaces(validMeshes));
 
   acmMaterials.Lock();
   
   // sort triangles per surfaces
   INDEX trianglesOffset = 0;
-  for (size_t i = 0; i < aiSceneMain->mNumMeshes; ++i)
+  size_t meshIndex = 0;
+  for (auto* mesh : validMeshes)
   {
-    auto* mesh = aiSceneMain->mMeshes[i];
     for (INDEX iTriangle = 0; iTriangle < mesh->mNumFaces; iTriangle++)
     {
       ConversionTriangle& ctTriangle = actTriangles[trianglesOffset + iTriangle];
@@ -339,18 +355,19 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
 
       for (size_t iUVMapIndex = 0; iUVMapIndex < 3; ++iUVMapIndex)
       {
-        if (!mesh->HasTextureCoords(iUVMapIndex))
+        size_t uv = uvChannels[mesh][iUVMapIndex];
+        if (!mesh->HasTextureCoords(uv))
           continue;
 
         // copy texture vertex indices
         if (bFlipped) {
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 0] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[2]]];
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 1] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[1]]];
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 2] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[0]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 0] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[2]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 1] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[1]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 2] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[0]]];
         } else {
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 0] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[0]]];
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 1] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[1]]];
-          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 2] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[iUVMapIndex][ai_face->mIndices[2]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 0] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[0]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 1] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[1]]];
+          ctTriangle.ct_iTVtx[iUVMapIndex*3 + 2] = uniqueTexCoords[iUVMapIndex][mesh->mTextureCoords[uv][ai_face->mIndices[2]]];
         }
       }
 
@@ -402,7 +419,7 @@ void FillConversionArrays_t(const FLOATmatrix3D &mTransform, const aiScene* aiSc
         {
           acmMaterials[iNewMaterial].cm_strName = CTString(materialName.C_Str());
           // get color
-          const double materialCoefficient = static_cast<double>(i+1) / aiSceneMain->mNumMeshes;
+          const double materialCoefficient = static_cast<double>(++meshIndex) / validMeshes.size();
           COLOR colColor = static_cast<COLOR>(std::numeric_limits<COLOR>::max() * materialCoefficient);
           acmMaterials[iNewMaterial].cm_colColor = colColor;
         }
@@ -425,7 +442,8 @@ void ClearConversionArrays( void)
   avVertices.Clear();
   for (size_t i = 0; i < 3; ++i)
     avTextureVertices[i].Clear();
-  aiRemap.Clear();
+  uvChannels.clear();
+  validMeshes.clear();
 }
 
 /*
