@@ -422,6 +422,7 @@ CWorldEditorApp theApp;
 
 BOOL CWorldEditorApp::InitInstance()
 {
+  QMfcApp::instance(this);
   _CrtSetBreakAlloc(55);
   BOOL bResult;
   CTSTREAM_BEGIN {
@@ -2686,8 +2687,9 @@ int CWorldEditorApp::Run()
 {
 	int iResult;
   CTSTREAM_BEGIN {
-    iResult=CWinApp::Run();
+    iResult = QMfcApp::run(this);
   } CTSTREAM_END;
+  delete qApp;
 	return iResult;
 }
 
