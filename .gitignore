@@ -31,6 +31,9 @@
 !Bison.exe
 !Flex.exe
 
+# Output binary dir
+Bin/*
+
 # CMake Build dirs (temp)
 Build/
 Debug/
