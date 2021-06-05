@@ -1,20 +1,5 @@
-/* Copyright (c) 2002-2012 Croteam Ltd. 
-This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the GNU General Public License as published by
-the Free Software Foundation
-
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
-
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by WorldEditor.rc
 //
 #define ID_LOAD_PREFERENCES             3
@@ -34,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define ID_DELETE_ANIMATION             9
 #define IDD_ABOUTBOX                    100
 #define CG_IDD_BROWSEDIALOGBAR          102
+#define IDD_PROPERTY_TREE               103
 #define CG_IDD_PROPERTYCOMBO            105
 #define IDC_CUT_LINE                    105
 #define IDC_MIRROR                      107
@@ -1304,14 +1290,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define ID_TERRAIN_PROPERTIES           33389
 #define ID_EXPORT_PLACEMENTS            33391
 #define ID_EXPORT_ENTITIES              33392
-
 #define ID_ADV_MAPPING_ROTATION_ALIGN   33402
 #define ID_ADV_MAPPING_ALIGN_TANGENT    33403
 #define ID_ADV_MAPPING_ALIGN_ADJACENT   33404
 #define ID_ADV_MAPPING_ALIGN_ADJACENT_TANGENT 33405
-
 #define ID_ACCELERATOR33406             33406
-
 #define IDW_TOOLBAR_MAIN                0xE800
 #define IDW_STATUSBAR                   0xE801
 #define IDW_TOOLBAR_CSG                 0xE802
@@ -1325,6 +1308,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define IDW_TOOLBAR_SHADOWS_AND_TEXTURE 0xE80A
 #define IDW_TOOLBAR_SELECT_ENTITY       0xE80B
 #define IDW_TOOLBAR_VIEW_TOOLS2         0xE80C
+#define ID_VIEW_PROPERTY_TREE           0xE80D
 #define IDW_SHOW_TEXTURE                61216
 #define IDW_FBM_PREVIEW                 61217
 #define ID_STATIC                       65535
@@ -1334,7 +1318,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        255
+#define _APS_NEXT_RESOURCE_VALUE        256
 #define _APS_NEXT_COMMAND_VALUE         33391
 #define _APS_NEXT_CONTROL_VALUE         1264
 #define _APS_NEXT_SYMED_VALUE           111

@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef MAINFRAME_H
 #define MAINFRAME_H 1
 
+#include "PropertyTree.h"
+
 #define STATUS_LINE_PANE 0
 #define EDITING_MODE_ICON_PANE 1
 #define EDITING_MODE_PANE 2
@@ -78,6 +80,7 @@ public:
   // Tool dialogs
   CBrowser m_Browser;
   CPropertyComboBar m_PropertyComboBar;
+  PropertyTree_MFC_Host m_propertyTree;
   // mini frame used to hold property sheet with dialog pages
   CInfoFrame *m_pInfoFrame;
   CTFileName m_fnLastVirtualTree;
