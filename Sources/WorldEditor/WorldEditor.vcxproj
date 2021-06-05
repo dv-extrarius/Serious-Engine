@@ -266,6 +266,8 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="TerrainEditing.cpp" />
     <ClCompile Include="TerrainInterface.cpp" />
     <ClCompile Include="ToolTipWnd.cpp" />
+    <ClCompile Include="Tree\treeitem.cpp" />
+    <ClCompile Include="Tree\treemodel.cpp" />
     <ClCompile Include="TriangularisationCombo.cpp" />
     <ClCompile Include="Viewers.cpp" />
     <ClCompile Include="ViewTexture.cpp" />
@@ -424,6 +426,11 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClInclude Include="TerrainEditing.h" />
     <ClInclude Include="TerrainInterface.h" />
     <ClInclude Include="ToolTipWnd.h" />
+    <ClInclude Include="Tree\treeitem.h" />
+    <CustomBuild Include="Tree\treemodel.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+    </CustomBuild>
     <ClInclude Include="TriangularisationCombo.h" />
     <ClInclude Include="Viewers.h" />
     <ClInclude Include="ViewTexture.h" />

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{581cfb2d-9f80-4531-a100-fb97388ad6c1}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Source Files\Tree">
+      <UniqueIdentifier>{4693e37c-4407-4b98-aaab-4ab59d11d89a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{d450ea09-f9e6-4551-a341-95d01b90e85c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveTextureWnd.cpp">
@@ -254,6 +260,12 @@
     </ClCompile>
     <ClCompile Include="PropertyTree.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\treeitem.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\treemodel.cpp">
+      <Filter>Source Files\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -502,6 +514,9 @@
     <ClInclude Include="PropertyTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Tree\treeitem.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ReadMe.txt">
@@ -698,6 +713,9 @@
     </CustomBuild>
     <CustomBuild Include="res\WorldEditorDoc.ico">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\treemodel.h">
+      <Filter>Header Files\Tree</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

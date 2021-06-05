@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef PROPERTY_TREE_H
 #define PROPERTY_TREE_H
 
+#include <memory>
+
 class PropertyTree_MFC_Host : public CDialogBar
 {
 public:
@@ -22,12 +24,15 @@ public:
   CSize CalcDynamicLayout(int nLength, DWORD dwMode) override;
 
 public:
+  CSize m_Size;
+
+private:
+  afx_msg LONG OnInitDialog(UINT wParam, LONG lParam);
   afx_msg void OnSize(UINT nType, int cx, int cy);
   DECLARE_MESSAGE_MAP()
 
 private:
-  CSize m_sizeDocked;
-  CSize m_sizeFloating;
+  std::unique_ptr<QWinWidget> mp_winWidget;
 };
 
 #endif

@@ -69,6 +69,7 @@ Temp/*.wld
 *.rpt	# crashinfo
 *.gms
 *.vis
+*.moc
 Data/*.pri
 Data/*.bin
 Scripts/PersistentSymbols.ini

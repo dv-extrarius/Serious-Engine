@@ -507,11 +507,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     STD_BROWSER_WIDTH, STD_BROWSER_HEIGHT);
 	LOAD_BAR_STATE("Property width", "Property height", m_PropertyComboBar,
     STD_PROPERTYCOMBO_WIDTH, STD_PROPERTYCOMBO_HEIGHT);
-
-  ::SetWindowPos(m_propertyTree.GetSafeHwnd(), 0, 0, 0,
-    (AfxGetApp()->GetProfileInt(_T("General"), _T("Tree width"), STD_PROPERTYTREE_WIDTH)),
-    (AfxGetApp()->GetProfileInt(_T("General"), _T("Tree height"), STD_PROPERTYTREE_HEIGHT)),
-    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOREPOSITION | SWP_NOZORDER);
+  LOAD_BAR_STATE("Tree width", "Tree height", m_propertyTree,
+    STD_PROPERTYTREE_WIDTH, STD_PROPERTYTREE_HEIGHT);
 
   // set font for combo and edit boxes
   m_CSGDesitnationCombo.SetFont(&theApp.m_Font);
@@ -677,11 +674,7 @@ void CMainFrame::OnClose()
 	SaveBarState(_T("General"));
 	SAVE_BAR_STATE("Browser width", "Browser height", m_Browser);
 	SAVE_BAR_STATE("Property width", "Property height", m_PropertyComboBar);
-
-  CRect tree_size;
-  m_propertyTree.GetWindowRect(&tree_size);
-  AfxGetApp()->WriteProfileInt(_T("General"), _T("Tree width"), tree_size.Width());
-  AfxGetApp()->WriteProfileInt(_T("General"), _T("Tree height"), tree_size.Height());
+  SAVE_BAR_STATE("Tree width", "Tree height", m_propertyTree);
 
   // save custom picker colors to registry
   SET_COLOR_TO_INI( 0, L"00");
