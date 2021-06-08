@@ -15,14 +15,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdAfx.h"
 #include "properties_entity_root.h"
-#include "../EventHub.h"
+#include "EventHub.h"
 
-EntityRootProperties::EntityRootProperties(BasePropertyTreeItem* parent, const std::vector<CEntity*>& entities)
+EntityRootProperties::EntityRootProperties(BasePropertyTreeItem* parent, const std::set<CEntity*>& entities)
   : BasePropertyTreeItem(parent)
   , m_entities(entities)
 {
   QObject::connect(&EventHub::instance(), &EventHub::PropertyChanged, this,
-    [this](const std::vector<CEntity*>& entities, CEntityProperty* prop)
+    [this](const std::set<CEntity*>& entities, CEntityProperty* prop)
     {
       if (prop->ep_eptType == CEntityProperty::PropertyType::EPT_STRING ||
           prop->ep_eptType == CEntityProperty::PropertyType::EPT_STRINGTRANS)
@@ -45,10 +45,11 @@ QVariant EntityRootProperties::data(int column, int role) const
   QString common_value;
   if (column == 0 || column == 2)
   {
-    common_value = m_entities.front()->GetClass()->ec_pdecDLLClass->dec_strName;
-    for (size_t i = 1; i < m_entities.size(); ++i)
+    auto it = m_entities.begin();
+    common_value = (*it)->GetClass()->ec_pdecDLLClass->dec_strName;
+    for (++it; it != m_entities.end(); ++it)
     {
-      if (common_value != m_entities[i]->GetClass()->ec_pdecDLLClass->dec_strName)
+      if (common_value != (*it)->GetClass()->ec_pdecDLLClass->dec_strName)
       {
         common_value = "(mixed selection)";
         break;
@@ -57,10 +58,11 @@ QVariant EntityRootProperties::data(int column, int role) const
   }
   else if (column == 1)
   {
-    common_value = m_entities.front()->GetName();
-    for (size_t i = 1; i < m_entities.size(); ++i)
+    auto it = m_entities.begin();
+    common_value = (*it)->GetName();
+    for (++it; it != m_entities.end(); ++it)
     {
-      if (common_value != m_entities[i]->GetName())
+      if (common_value != (*it)->GetName())
       {
         common_value = "(mixed names)";
         break;

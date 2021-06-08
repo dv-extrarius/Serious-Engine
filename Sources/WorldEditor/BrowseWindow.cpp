@@ -1265,7 +1265,7 @@ void CBrowseWindow::OnConvertClass()
   try
   {
     CWorldEditorDoc *pDoc = theApp.GetDocument();
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       // create the entity of requested class
       CEntity *penNewClass;

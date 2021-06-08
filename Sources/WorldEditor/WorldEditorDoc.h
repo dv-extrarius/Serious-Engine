@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef WORLDEDITORDOC_H
 #define WORLDEDITORDOC_H 1
 
+#include "entity_selection.h"
+
 #define SNAP_DOUBLE_CM 0.015625
 #define SNAP_FLOAT_CM 0.015625f
 #define SNAP_FLOAT_12 0.125f
@@ -133,7 +135,7 @@ public:
   CDynamicContainer<CEntity> m_cenEntitiesSelectedByVolume;
   INDEX m_iSelectedEntityInVolume;
   // selections
-  CEntitySelection m_selEntitySelection;
+  NewEntitySelection m_selEntitySelection;
   CBrushSectorSelection m_selSectorSelection;
   CBrushVertexSelection m_selVertexSelection;
   CStaticArray<DOUBLE3D> m_avStartDragVertices;

@@ -97,7 +97,7 @@ void PropertyTreeModel::_AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item
   parent.appendChild(std::move(item));
 }
 
-void PropertyTreeModel::Fill(const std::vector<CEntity*>& curr_selection)
+void PropertyTreeModel::Fill(const std::set<CEntity*>& curr_selection)
 {
   beginResetModel();
   Clear();
@@ -105,12 +105,10 @@ void PropertyTreeModel::Fill(const std::vector<CEntity*>& curr_selection)
     return;
 
   QModelIndex root_index;
-  auto selection_sorted = curr_selection;
-  std::sort(selection_sorted.begin(), selection_sorted.end());
-  _AddEntityProperties(root_index, selection_sorted);
+  _AddEntityProperties(root_index, curr_selection);
 }
 
-void PropertyTreeModel::_AddEntityProperties(const QModelIndex& parent, const std::vector<CEntity*>& entities)
+void PropertyTreeModel::_AddEntityProperties(const QModelIndex& parent, const std::set<CEntity*>& entities)
 {
   BasePropertyTreeItem* parent_item = mp_header_item.get();
   if (parent.isValid())
@@ -124,7 +122,7 @@ void PropertyTreeModel::_AddEntityProperties(const QModelIndex& parent, const st
   _FillSubProperties(index(starting_row, 0, parent), entities);
 }
 
-void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std::vector<CEntity*>& entities)
+void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std::set<CEntity*>& entities)
 {
   BasePropertyTreeItem* parent_item = static_cast<BasePropertyTreeItem*>(parent.internalPointer());
 
@@ -165,7 +163,7 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   int starting_row = parent_item->childCount();
   int inserted_rows = 0;
 
-  CEntity* penEntity = entities.front();
+  CEntity* penEntity = *entities.begin();
   CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
   for (; pdecDLLClass; pdecDLLClass = pdecDLLClass->dec_pdecBase)
   {

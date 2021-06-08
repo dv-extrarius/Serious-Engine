@@ -33,7 +33,7 @@ void InitSelectOnRender(PIX pixSizeI, PIX pixSizeJ)
   _pixSizeJ = pixSizeJ;
 
   // if entity selecting not required
-  if (_pselenSelectOnRender==NULL)
+  if (_selenSelectOnRender.m_select_callback && _selenSelectOnRender.m_deselect_callback)
   {
     // if vertex selecting not requred
     if (_pselbvxtSelectOnRender==NULL) {
@@ -281,7 +281,7 @@ void SelectEntityOnRender(CProjection3D &prProjection, CEntity &en)
       // deselect
       if (en.IsSelected(ENF_SELECTED))
       {
-        _pselenSelectOnRender->Deselect(en);
+        _selenSelectOnRender.m_deselect_callback(en);
       }
     }
     else
@@ -289,7 +289,7 @@ void SelectEntityOnRender(CProjection3D &prProjection, CEntity &en)
       // select
       if (!en.IsSelected(ENF_SELECTED))
       {
-        _pselenSelectOnRender->Select(en);
+        _selenSelectOnRender.m_select_callback(en);
       }
     }
   }

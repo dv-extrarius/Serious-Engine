@@ -83,7 +83,7 @@ void CDlgPgPosition::DoDataExchange(CDataExchange* pDX)
       // lock selection's dynamic container
       pDoc->m_selEntitySelection.Lock();
       // get first entity
-      CEntity *penEntityOne = pDoc->m_selEntitySelection.Pointer(0);
+      CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
       // unlock selection's dynamic container
       pDoc->m_selEntitySelection.Unlock();
 
@@ -139,7 +139,7 @@ void CDlgPgPosition::DoDataExchange(CDataExchange* pDX)
       // lock selection's dynamic container
       pDoc->m_selEntitySelection.Lock();
       // get first entity
-      CEntity *penEntityOne = pDoc->m_selEntitySelection.Pointer(0);
+      CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
       // unlock selection's dynamic container
       pDoc->m_selEntitySelection.Unlock();
 

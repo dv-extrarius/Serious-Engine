@@ -30,7 +30,7 @@ public:
   explicit PropertyTreeModel(QObject *parent = nullptr);
 
   void          Clear();
-  void          Fill(const std::vector<CEntity*>& curr_selection);
+  void          Fill(const std::set<CEntity*>& curr_selection);
   QWidget*      CreateEditor(const QModelIndex& index, QWidget* parent);
 
   int           rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -43,8 +43,8 @@ public:
   QModelIndex   parent(const QModelIndex& index) const override;
 
 private:
-  void          _AddEntityProperties(const QModelIndex& parent, const std::vector<CEntity*>& entities);
-  void          _FillSubProperties(const QModelIndex& parent, const std::vector<CEntity*>& entities);
+  void          _AddEntityProperties(const QModelIndex& parent, const std::set<CEntity*>& entities);
+  void          _FillSubProperties(const QModelIndex& parent, const std::set<CEntity*>& entities);
   void          _AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item, BasePropertyTreeItem& parent);
 
 private:

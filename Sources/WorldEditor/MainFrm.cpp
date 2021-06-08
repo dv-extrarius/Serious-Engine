@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "MainFrm.h"
+#include "EventHub.h"
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <process.h>
 
@@ -181,6 +182,7 @@ CMainFrame::CMainFrame()
   m_pInfoFrame = NULL;
   m_pColorPalette = NULL;
   m_pwndToolTip = NULL;
+  m_pLastDoc = nullptr;
 }
 
 CMainFrame::~CMainFrame()
@@ -873,6 +875,16 @@ BOOL CMainFrame::OnIdle(LONG lCount)
 
   // call on idle for property combo bar
   m_PropertyComboBar.OnIdle( lCount);
+
+  CWorldEditorDoc* pDoc = theApp.GetDocument();
+  if (m_pLastDoc != pDoc)
+  {
+    if (pDoc)
+      pDoc->m_selEntitySelection.Notify();
+    else
+      EventHub::instance().CurrentEntitySelectionChanged({});
+  }
+  m_pLastDoc = pDoc;
 
   return TRUE;
 }

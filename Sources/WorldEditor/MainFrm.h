@@ -19,7 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef MAINFRAME_H
 #define MAINFRAME_H 1
 
-#include "PropertyTree.h"
+#include "property_tree.h"
 
 #define STATUS_LINE_PANE 0
 #define EDITING_MODE_ICON_PANE 1
@@ -87,6 +87,7 @@ public:
   // color palette
   CColorPaletteWnd *m_pColorPalette;
   CToolTipWnd *m_pwndToolTip;
+  CWorldEditorDoc* m_pLastDoc;
 // Operations
 public:
   void DockControlBarRelativeTo(CControlBar* Bar,CControlBar* LeftOf,

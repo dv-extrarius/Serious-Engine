@@ -94,7 +94,7 @@
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
       <DisableSpecificWarnings>4996;4333</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
@@ -149,7 +149,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\QtSolutions_MFCMigrationFrame
       <ObjectFileName>.\Debug\</ObjectFileName>
       <ProgramDataBaseFileName>.\Debug\</ProgramDataBaseFileName>
       <DisableSpecificWarnings>4996;4333</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
@@ -192,7 +192,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
       <AdditionalLibraryDirectories>$(SolutionDir)Engine\$(Configuration)\;$(SolutionDir)EngineGUI\$(Configuration)\;$(QtWinMigrate_dir)\lib\;$(Qt_dir)\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -253,6 +253,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="DlgWorldSettings.cpp" />
     <ClCompile Include="EditMipSwitchDistance.cpp" />
     <ClCompile Include="EntitySelectionListBox.cpp" />
+    <ClCompile Include="entity_selection.cpp" />
     <ClCompile Include="EventHub.cpp" />
     <ClCompile Include="InfoFrame.cpp" />
     <ClCompile Include="InfoSheet.cpp" />
@@ -260,7 +261,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="PrimitiveHistoryCombo.cpp" />
     <ClCompile Include="PropertyComboBar.cpp" />
     <ClCompile Include="PropertyComboBox.cpp" />
-    <ClCompile Include="PropertyTree.cpp" />
+    <ClCompile Include="property_tree.cpp" />
     <ClCompile Include="SkyFloat.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -428,6 +429,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
       <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
     </CustomBuild>
+    <ClInclude Include="entity_selection.h" />
     <ClInclude Include="InfoFrame.h" />
     <ClInclude Include="InfoSheet.h" />
     <ClInclude Include="MainFrm.h" />
@@ -439,7 +441,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building help ids from %(FullPath)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">hlp\resources.hm;%(Outputs)</Outputs>
     </CustomBuild>
-    <ClInclude Include="PropertyTree.h" />
+    <ClInclude Include="property_tree.h" />
     <ClInclude Include="SkyFloat.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TerrainEditing.h" />

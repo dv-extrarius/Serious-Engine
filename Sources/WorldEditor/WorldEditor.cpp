@@ -2492,7 +2492,9 @@ BOOL CWorldEditorApp::Add3DObject(CWorldEditorDoc *pDoc, CEntity *penwb, CTFileN
     else
     {
       // copy entities
-      penwb->en_pwoWorld->CopyEntities( woWorld, woWorld.wo_cenEntities, pDoc->m_selEntitySelection, plDummy);
+      CEntitySelection tmp_selection;
+      penwb->en_pwoWorld->CopyEntities( woWorld, woWorld.wo_cenEntities, tmp_selection, plDummy);
+      pDoc->m_selEntitySelection.ConvertFromCTSelection(tmp_selection);
     }
   }
   // catch and

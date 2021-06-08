@@ -258,9 +258,6 @@
     <ClCompile Include="WorldEditorView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PropertyTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Tree\tree_icons.qrc.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
@@ -287,6 +284,12 @@
     </ClCompile>
     <ClCompile Include="Tree\property_string.cpp">
       <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="property_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_selection.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -532,9 +535,6 @@
     <ClInclude Include="WorldEditorView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropertyTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Tree\tree_icons.qrc.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
@@ -546,6 +546,12 @@
     </ClInclude>
     <ClInclude Include="Tree\property_string.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="property_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_selection.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

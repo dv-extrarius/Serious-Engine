@@ -56,6 +56,7 @@ CEntity *_penForDistanceSort = NULL;
 BOOL _bOfSameClass=FALSE;
 INDEX _ctProperties=0;
 CDynamicContainer<class CEntity> _tempContainer;
+CDynamicContainer<class CEntity> _tempSelectionContainer;
 BOOL _bTempContainer=FALSE;
 
 BOOL AreAllEntitiesOfTheSameClass(CDynamicContainer<class CEntity> *penContainer)
@@ -547,7 +548,8 @@ CDynamicContainer<class CEntity> *CDlgBrowseByClass::GetCurrentContainer(void)
   }
   else if( pDoc->m_selEntitySelection.Count() > 1)
   {
-    return &pDoc->m_selEntitySelection;
+    pDoc->m_selEntitySelection.ConvertToCTContainer(_tempSelectionContainer);
+    return &_tempSelectionContainer;
   }
   return &pDoc->m_woWorld.wo_cenEntities;
 }
@@ -587,7 +589,7 @@ void CDlgBrowseByClass::FillListWithEntities(void)
   if( pDoc->m_selEntitySelection.Count() == 1)
   {
     pDoc->m_selEntitySelection.Lock();
-    CEntity *penOnly = pDoc->m_selEntitySelection.Pointer(0);
+    CEntity *penOnly = pDoc->m_selEntitySelection.GetFirstInSelection();
     pDoc->m_selEntitySelection.Unlock();
 
     INDEX ctItems = m_listEntities.GetItemCount();
@@ -997,7 +999,7 @@ void CDlgBrowseByClass::OnDeleteBrowseByClass()
   }
 
   // check for deleting terrain
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     CEntity &en=*iten;
     // if it is terrain
@@ -1021,8 +1023,7 @@ void CDlgBrowseByClass::OnDeleteBrowseByClass()
   }}
   
   // delete all selected entities
-  pDoc->m_woWorld.DestroyEntities( pDoc->m_selEntitySelection);
-  pDoc->m_selEntitySelection.Clear();
+  pDoc->m_selEntitySelection.DestroyEntities(pDoc->m_woWorld);
   pDoc->SetModifiedFlag( TRUE);
   pDoc->m_chDocument.MarkChanged();
 

@@ -16,7 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdAfx.h"
 #include "property_string.h"
 #include "ui_property_factory.h"
-#include "../EventHub.h"
+#include "EventHub.h"
 
 #include <QLineEdit>
 

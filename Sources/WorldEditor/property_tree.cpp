@@ -14,7 +14,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 #include "StdAfx.h"
-#include "PropertyTree.h"
+#include "property_tree.h"
 #include "Tree/property_tree_model.h"
 #include "Tree/property_item_delegate.h"
 #include "EventHub.h"
@@ -94,11 +94,11 @@ public:
       });
 
     QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, mp_winWidget.get(), [this]
-    (const std::vector<CEntity*>& curr_selection)
+      (const std::set<CEntity*>& new_selection)
       {
-        mp_tree_model->Fill(curr_selection);
-        mp_winWidget->setEnabled(!curr_selection.empty());
-        if (!curr_selection.empty())
+        mp_tree_model->Fill(new_selection);
+        mp_winWidget->setEnabled(!new_selection.empty());
+        if (!new_selection.empty())
           mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
       });
   }

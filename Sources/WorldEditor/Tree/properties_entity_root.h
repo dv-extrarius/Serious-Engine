@@ -17,17 +17,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "base_property_tree_item.h"
 
-#include <vector>
+#include <set>
 
 class EntityRootProperties : public BasePropertyTreeItem
 {
 public:
-  EntityRootProperties(BasePropertyTreeItem* parent, const std::vector<CEntity*>& entities);
+  EntityRootProperties(BasePropertyTreeItem* parent, const std::set<CEntity*>& entities);
 
   QVariant data(int column, int role) const override;
 
 private:
-  const std::vector<CEntity*> m_entities;
+  const std::set<CEntity*> m_entities;
 };
 
 #endif
