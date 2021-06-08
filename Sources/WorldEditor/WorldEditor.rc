@@ -173,6 +173,7 @@ BEGIN
     BUTTON      ID_EDIT_PASTE
     SEPARATOR
     BUTTON      ID_APP_ABOUT
+    BUTTON      ID_QT_ABOUTBOX
     BUTTON      ID_CONTEXT_HELP
 END
 
@@ -413,6 +414,7 @@ BEGIN
         MENUITEM "&Help Topics",                ID_HELP_FINDER
         MENUITEM SEPARATOR
         MENUITEM "&About SeriousEditor...",     ID_APP_ABOUT
+        MENUITEM "&About Qt...",                ID_QT_ABOUTBOX
     END
 END
 
@@ -500,6 +502,7 @@ BEGIN
         MENUITEM "&Help Topics",                ID_HELP_FINDER
         MENUITEM SEPARATOR
         MENUITEM "&About SeriousEditor...",     ID_APP_ABOUT
+        MENUITEM "&About Qt...",                ID_QT_ABOUTBOX
     END
 END
 
@@ -2937,6 +2940,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_QT_ABOUTBOX          "Display information about Qt third-party library\nAbout Qt"
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
     ID_HELP_INDEX           "Opens Help\nHelp Topics"

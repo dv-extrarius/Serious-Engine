@@ -12,34 +12,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
-#ifndef PROPERTY_TREE_H
-#define PROPERTY_TREE_H
+#ifndef PROPERTY_BOOL_H
+#define PROPERTY_BOOL_H
 
-#include <memory>
+#include "base_property_tree_item.h"
 
-class PassMessageToQt {};
+#include <QPointer>
+#include <QCheckBox>
 
-class PropertyTree_MFC_Host : public CDialogBar
+class Property_Bool : public BasePropertyTreeItem
 {
 public:
-  PropertyTree_MFC_Host();
-  ~PropertyTree_MFC_Host();
+  Property_Bool(CEntity* entity, CEntityProperty* prop, BasePropertyTreeItem* parent);
 
-  BOOL Create(CWnd* pParentWnd, UINT nIDTemplate, UINT nStyle, UINT nID);
-  CSize CalcDynamicLayout(int nLength, DWORD dwMode) override;
-  bool IsUnderMouse() const;
-
-public:
-  CSize m_Size;
+  QVariant data(int column, int role) const override;
+  bool     editable() const override;
+  QWidget* CreateEditor(QWidget* parent) override;
 
 private:
-  afx_msg LONG OnInitDialog(UINT wParam, LONG lParam);
-  afx_msg void OnSize(UINT nType, int cx, int cy);
-  DECLARE_MESSAGE_MAP()
-
-private:
-  class _Impl;
-  std::unique_ptr<_Impl> mp_impl;
+  CEntity*            mp_entity;
+  CEntityProperty*    mp_property;
+  QMetaObject::Connection m_editor_connection;
 };
 
 #endif

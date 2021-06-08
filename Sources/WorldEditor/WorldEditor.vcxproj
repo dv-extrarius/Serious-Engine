@@ -21,6 +21,7 @@
     </SccLocalPath>
     <Keyword>MFCProj</Keyword>
     <ProjectGuid>{DC47DA88-14E2-0634-61C5-7CEEC46A45C2}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" Label="Configuration">
@@ -94,6 +95,7 @@
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
       <DisableSpecificWarnings>4996;4333</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -148,6 +150,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\QtSolutions_MFCMigrationFrame
       <ProgramDataBaseFileName>.\Debug\</ProgramDataBaseFileName>
       <DisableSpecificWarnings>4996;4333</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -190,6 +193,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(QtWinMigrate_dir)\src;$(Qt_dir)\include\;$(Qt_dir)\include\QtCore\;$(Qt_dir)\include\QtGui\;$(Qt_dir)\include\QtWidgets\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -249,6 +253,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="DlgWorldSettings.cpp" />
     <ClCompile Include="EditMipSwitchDistance.cpp" />
     <ClCompile Include="EntitySelectionListBox.cpp" />
+    <ClCompile Include="EventHub.cpp" />
     <ClCompile Include="InfoFrame.cpp" />
     <ClCompile Include="InfoSheet.cpp" />
     <ClCompile Include="MainFrm.cpp" />
@@ -266,8 +271,14 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="TerrainEditing.cpp" />
     <ClCompile Include="TerrainInterface.cpp" />
     <ClCompile Include="ToolTipWnd.cpp" />
-    <ClCompile Include="Tree\treeitem.cpp" />
-    <ClCompile Include="Tree\treemodel.cpp" />
+    <ClCompile Include="Tree\base_property_tree_item.cpp" />
+    <ClCompile Include="Tree\properties_entity_root.cpp" />
+    <ClCompile Include="Tree\property_bool.cpp" />
+    <ClCompile Include="Tree\property_string.cpp" />
+    <ClCompile Include="Tree\property_tree_model.cpp" />
+    <ClCompile Include="Tree\property_item_delegate.cpp" />
+    <ClCompile Include="Tree\tree_icons.qrc.cpp" />
+    <ClCompile Include="Tree\ui_property_factory.cpp" />
     <ClCompile Include="TriangularisationCombo.cpp" />
     <ClCompile Include="Viewers.cpp" />
     <ClCompile Include="ViewTexture.cpp" />
@@ -409,6 +420,14 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClInclude Include="dlgworldsettings.h" />
     <ClInclude Include="EditMipSwitchDistance.h" />
     <ClInclude Include="EntitySelectionListBox.h" />
+    <CustomBuild Include="EventHub.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+    </CustomBuild>
     <ClInclude Include="InfoFrame.h" />
     <ClInclude Include="InfoSheet.h" />
     <ClInclude Include="MainFrm.h" />
@@ -426,11 +445,38 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClInclude Include="TerrainEditing.h" />
     <ClInclude Include="TerrainInterface.h" />
     <ClInclude Include="ToolTipWnd.h" />
-    <ClInclude Include="Tree\treeitem.h" />
-    <CustomBuild Include="Tree\treemodel.h">
+    <CustomBuild Include="Tree\base_property_tree_item.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
     </CustomBuild>
+    <CustomBuild Include="Tree\property_tree_model.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+    </CustomBuild>
+    <CustomBuild Include="Tree\property_item_delegate.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+    </CustomBuild>
+    <CustomBuild Include="Tree\property_bool.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc</Outputs>
+    </CustomBuild>
+    <ClInclude Include="Tree\properties_entity_root.h" />
+    <ClInclude Include="Tree\property_string.h" />
+    <ClInclude Include="Tree\tree_icons.qrc.h" />
+    <ClInclude Include="Tree\ui_property_factory.h" />
     <ClInclude Include="TriangularisationCombo.h" />
     <ClInclude Include="Viewers.h" />
     <ClInclude Include="ViewTexture.h" />
@@ -443,6 +489,23 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClInclude Include="WorldEditor.h" />
     <ClInclude Include="WorldEditorDoc.h" />
     <ClInclude Include="WorldEditorView.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EventHub.h.moc" />
+    <None Include="Tree\base_property_tree_item.h.moc">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Tree\property_tree_model.h.moc" />
+    <None Include="Tree\property_item_delegate.h.moc" />
+    <CustomBuild Include="Tree\tree_icons.qrc">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\rcc.exe %(FullPath) &gt; %(FullPath).h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\rcc.exe %(FullPath) &gt; %(FullPath).h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\rcc.exe %(FullPath) &gt; %(FullPath).h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).h;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

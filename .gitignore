@@ -65,11 +65,13 @@ Temp/ConsoleHistory.txt
 Temp/Profile_CSG.txt
 Temp/Profile_Open.txt
 Temp/*.wld
+Temp/*.tmp
 *.log
 *.rpt	# crashinfo
 *.gms
 *.vis
 *.moc
+*.qrc.h
 Data/*.pri
 Data/*.bin
 Scripts/PersistentSymbols.ini

@@ -12,34 +12,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
-#ifndef PROPERTY_TREE_H
-#define PROPERTY_TREE_H
+#ifndef PROPERTY_ITEM_DELEGATE_H
+#define PROPERTY_ITEM_DELEGATE_H
 
-#include <memory>
+#include <QStyledItemDelegate>
+#include <QPointer>
 
-class PassMessageToQt {};
+class QTreeView;
 
-class PropertyTree_MFC_Host : public CDialogBar
+class PropertyItemDelegate : public QStyledItemDelegate
 {
+  Q_OBJECT
 public:
-  PropertyTree_MFC_Host();
-  ~PropertyTree_MFC_Host();
-
-  BOOL Create(CWnd* pParentWnd, UINT nIDTemplate, UINT nStyle, UINT nID);
-  CSize CalcDynamicLayout(int nLength, DWORD dwMode) override;
-  bool IsUnderMouse() const;
-
-public:
-  CSize m_Size;
+  explicit PropertyItemDelegate(const QTreeView* tree_view, QObject* parent = nullptr);
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 
 private:
-  afx_msg LONG OnInitDialog(UINT wParam, LONG lParam);
-  afx_msg void OnSize(UINT nType, int cx, int cy);
-  DECLARE_MESSAGE_MAP()
-
-private:
-  class _Impl;
-  std::unique_ptr<_Impl> mp_impl;
+  QPointer<const QTreeView> mp_tree_view;
 };
 
 #endif

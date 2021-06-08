@@ -15,7 +15,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdAfx.h"
 #include "PropertyTree.h"
-#include "Tree/treemodel.h"
+#include "Tree/property_tree_model.h"
+#include "Tree/property_item_delegate.h"
+#include "EventHub.h"
 
 #include <QTreeView>
 #include <QVBoxLayout>
@@ -25,48 +27,130 @@ BEGIN_MESSAGE_MAP(PropertyTree_MFC_Host, CDialogBar)
   ON_MESSAGE(WM_INITDIALOG, OnInitDialog)
 END_MESSAGE_MAP()
 
-const char* input_test =
-R"(Getting Started				How to familiarize yourself with Qt Designer
-    Launching Designer			Running the Qt Designer application
-    The User Interface			How to interact with Qt Designer
+const char* tree_stylesheet =
+R"(
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+        border-image: none;
+        image: url(:/tree_icons/tree_closed.png);
+}
 
-Designing a Component			Creating a GUI for your application
-    Creating a Dialog			How to create a dialog
-    Composing the Dialog		Putting widgets into the dialog example
-    Creating a Layout			Arranging widgets on a form
-    Signal and Slot Connections		Making widget communicate with each other
-
-Using a Component in Your Application	Generating code from forms
-    The Direct Approach			Using a form without any adjustments
-    The Single Inheritance Approach	Subclassing a form's base class
-    The Multiple Inheritance Approach	Subclassing the form itself
-    Automatic Connections		Connecting widgets using a naming scheme
-        A Dialog Without Auto-Connect	How to connect widgets without a naming scheme
-        A Dialog With Auto-Connect	Using automatic connections
-
-Form Editing Mode			How to edit a form in Qt Designer
-    Managing Forms			Loading and saving forms
-    Editing a Form			Basic editing techniques
-    The Property Editor			Changing widget properties
-    The Object Inspector		Examining the hierarchy of objects on a form
-    Layouts				Objects that arrange widgets on a form
-        Applying and Breaking Layouts	Managing widgets in layouts 
-        Horizontal and Vertical Layouts	Standard row and column layouts
-        The Grid Layout			Arranging widgets in a matrix
-    Previewing Forms			Checking that the design works
-
-Using Containers			How to group widgets together
-    General Features			Common container features
-    Frames				QFrame
-    Group Boxes				QGroupBox
-    Stacked Widgets			QStackedWidget
-    Tab Widgets				QTabWidget
-    Toolbox Widgets			QToolBox
-
-Connection Editing Mode			Connecting widgets together with signals and slots
-    Connecting Objects			Making connections in Qt Designer
-    Editing Connections			Changing existing connections
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings  {
+        border-image: none;
+        image: url(:/tree_icons/tree_opened.png);
+}
 )";
+
+class PropertyTree_MFC_Host::_Impl
+{
+public:
+  _Impl()
+  {
+  }
+
+  void CreateWidget(CWnd* parent)
+  {
+    if (mp_winWidget)
+      return;
+
+    mp_winWidget = std::make_unique<QWinWidget>(parent, nullptr, Qt::WindowFlags{});
+
+    mp_tree_view = new QTreeView(mp_winWidget.get());
+    mp_tree_model = new PropertyTreeModel(mp_winWidget.get());
+    auto* item_delegate = new PropertyItemDelegate(mp_tree_view, mp_winWidget.get());
+    mp_tree_view->setModel(mp_tree_model);
+    mp_tree_view->setItemDelegate(item_delegate);
+    mp_tree_view->setUniformRowHeights(true);
+    mp_tree_view->setStyleSheet(tree_stylesheet);
+    mp_tree_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    auto* vertical_layout = new QVBoxLayout(mp_winWidget.get());
+    vertical_layout->addWidget(mp_tree_view);
+    vertical_layout->setContentsMargins(0, 0, 0, 0);
+    mp_winWidget->move(8, 8);
+    mp_winWidget->show();
+    mp_winWidget->setEnabled(false);
+
+    QObject::connect(mp_tree_model, &PropertyTreeModel::rowsInserted, mp_winWidget.get(), [this]
+    (const QModelIndex& parent, int row_start, int row_end)
+      {
+        CreateIndexWidgets(parent, row_start, row_end);
+        mp_tree_view->update();
+      });
+
+    QObject::connect(mp_tree_model, &PropertyTreeModel::rowsRemoved, mp_winWidget.get(), [this]
+    (const QModelIndex& parent, int row_start, int row_end)
+      {
+        RemoveIndexWidgets(parent, row_start, row_end);
+        mp_tree_view->update();
+      });
+
+    QObject::connect(mp_tree_model, &PropertyTreeModel::modelReset, mp_winWidget.get(), [this]
+      {
+        RemoveIndexWidgets(QModelIndex(), 0, mp_tree_model->rowCount() - 1);
+        CreateIndexWidgets(QModelIndex(), 0, mp_tree_model->rowCount() - 1);
+        mp_tree_view->update();
+      });
+
+    QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, mp_winWidget.get(), [this]
+    (const std::vector<CEntity*>& curr_selection)
+      {
+        mp_tree_model->Fill(curr_selection);
+        mp_winWidget->setEnabled(!curr_selection.empty());
+        if (!curr_selection.empty())
+          mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
+      });
+  }
+
+  QWinWidget* WinWidget()
+  {
+    return mp_winWidget.get();
+  }
+
+private:
+  void CreateIndexWidgets(const QModelIndex& parent, int start_row, int end_row)
+  {
+    for (int row = start_row; row <= end_row; ++row)
+    {
+      if (QModelIndex index = mp_tree_model->index(row, 1, parent); index.isValid())
+      {
+        auto* index_widget = mp_tree_model->CreateEditor(index, mp_tree_view);
+        if (index_widget)
+          mp_tree_view->setIndexWidget(index, index_widget);
+      }
+
+      if (QModelIndex index = mp_tree_model->index(row, 0, parent); index.isValid())
+        CreateIndexWidgets(index, 0, mp_tree_model->rowCount(index) - 1);
+    }
+  }
+
+  void RemoveIndexWidgets(const QModelIndex& parent, int start_row, int end_row)
+  {
+    for (int row = start_row; row <= end_row; ++row)
+    {
+      if (QModelIndex index = mp_tree_model->index(row, 1, parent); index.isValid())
+        mp_tree_view->setIndexWidget(index, nullptr);
+
+      if (QModelIndex index = mp_tree_model->index(row, 0, parent); index.isValid())
+        RemoveIndexWidgets(index, 0, mp_tree_model->rowCount(index) - 1);
+    }
+  }
+
+private:
+  std::unique_ptr<QWinWidget> mp_winWidget;
+  QTreeView*                  mp_tree_view = nullptr;
+  PropertyTreeModel*          mp_tree_model = nullptr;
+};
+
+PropertyTree_MFC_Host::PropertyTree_MFC_Host()
+  : mp_impl(std::make_unique<_Impl>())
+{
+}
+
+PropertyTree_MFC_Host::~PropertyTree_MFC_Host()
+{
+}
 
 BOOL PropertyTree_MFC_Host::Create(CWnd* pParentWnd, UINT nIDTemplate, UINT nStyle, UINT nID)
 {
@@ -77,8 +161,8 @@ BOOL PropertyTree_MFC_Host::Create(CWnd* pParentWnd, UINT nIDTemplate, UINT nSty
 
 void PropertyTree_MFC_Host::OnSize(UINT, int cx, int cy)
 {
-  if (mp_winWidget)
-    mp_winWidget->resize(cx - 16, cy - 16);
+  if (mp_impl->WinWidget())
+    mp_impl->WinWidget()->resize(cx - 16, cy - 16);
 }
 
 LONG PropertyTree_MFC_Host::OnInitDialog(UINT wParam, LONG lParam)
@@ -88,20 +172,7 @@ LONG PropertyTree_MFC_Host::OnInitDialog(UINT wParam, LONG lParam)
   if (!UpdateData(FALSE))
     TRACE0("Warning: UpdateData failed during dialog init.\n");
 
-  if (!mp_winWidget)
-  {
-    mp_winWidget = std::make_unique<QWinWidget>(this, nullptr, Qt::WindowFlags{});
-
-    auto* tree_view = new QTreeView(mp_winWidget.get());
-    auto* tree_model = new TreeModel(input_test, mp_winWidget.get());
-    tree_view->setModel(tree_model);
-
-    auto* vertical_layout = new QVBoxLayout(mp_winWidget.get());
-    vertical_layout->addWidget(tree_view);
-    vertical_layout->setContentsMargins(0, 0, 0, 0);
-    mp_winWidget->move(8, 8);
-    mp_winWidget->show();
-  }
+  mp_impl->CreateWidget(this);
   return bRet;
 }
 
@@ -124,4 +195,12 @@ CSize PropertyTree_MFC_Host::CalcDynamicLayout(int nLength, DWORD dwMode)
       m_Size.cy = nLength);
   else
     return CSize(m_Size.cx = nLength);
+}
+
+bool PropertyTree_MFC_Host::IsUnderMouse() const
+{
+  if (!mp_impl->WinWidget() || !mp_impl->WinWidget()->isEnabled())
+    return false;
+
+  return mp_impl->WinWidget()->underMouse();
 }

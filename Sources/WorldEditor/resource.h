@@ -1309,6 +1309,7 @@
 #define IDW_TOOLBAR_SELECT_ENTITY       0xE80B
 #define IDW_TOOLBAR_VIEW_TOOLS2         0xE80C
 #define ID_VIEW_PROPERTY_TREE           0xE80D
+#define ID_QT_ABOUTBOX                  0xE80E
 #define IDW_SHOW_TEXTURE                61216
 #define IDW_FBM_PREVIEW                 61217
 #define ID_STATIC                       65535

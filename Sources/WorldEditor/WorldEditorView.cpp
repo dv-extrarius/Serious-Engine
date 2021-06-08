@@ -7853,6 +7853,10 @@ void CWorldEditorView::OnRButtonDblClk(UINT nFlags, CPoint point)
 
 void CWorldEditorView::OnLastPrimitive()
 {
+  CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
+  if (pMainFrame->m_propertyTree.IsUnderMouse())
+    return;
+
   CWorldEditorDoc* pDoc = GetDocument();
 
   CTString strError;

@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <Engine/Templates/Stock_CModelData.h>
 
+#include <QMessageBox>
+
 #include <sys/stat.h>
 #include <sys/utime.h>
 #include <process.h>
@@ -117,6 +119,7 @@ void InitializeGame(void)
 BEGIN_MESSAGE_MAP(CWorldEditorApp, CWinApp)
 	//{{AFX_MSG_MAP(CWorldEditorApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+  ON_COMMAND(ID_QT_ABOUTBOX, OnQtAbout)
 	ON_COMMAND(ID_FILE_PREFERENCES, OnFilePreferences)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_IMPORT_3D_OBJECT, OnImport3DObject)
@@ -921,6 +924,12 @@ void CWorldEditorApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
+}
+
+void CWorldEditorApp::OnQtAbout()
+{
+  QWinWidget modal_widget(m_pMainWnd->GetSafeHwnd(), nullptr, Qt::WindowFlags{});
+  QMessageBox::aboutQt(&modal_widget, "About Qt");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2695,7 +2704,14 @@ int CWorldEditorApp::Run()
 
 BOOL CWorldEditorApp::PreTranslateMessage(MSG* pMsg)
 {
-	return CWinApp::PreTranslateMessage(pMsg);
+  try
+  {
+    return CWinApp::PreTranslateMessage(pMsg);
+  }
+  catch (const PassMessageToQt&)
+  {
+    return FALSE;
+  }
 }
 
 CTString CWorldEditorApp::GetNameForVirtualTreeNode( CVirtualTreeNode *pvtnNode)

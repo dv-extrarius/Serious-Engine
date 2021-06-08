@@ -1006,6 +1006,9 @@ void CMainFrame::ApplyTreeShortcut( INDEX iVDirBuffer, BOOL bCtrl)
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
+  if (m_propertyTree.IsUnderMouse())
+    throw PassMessageToQt{};
+
   BOOL bAltPressed = (GetKeyState( VK_MENU)&0x8000) != 0;
   // alt is pressed
   BOOL bAlt = FALSE;

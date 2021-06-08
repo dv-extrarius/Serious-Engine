@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "PropertyComboBox.h"
+#include "EventHub.h"
 
 #ifdef _DEBUG
 #undef new
@@ -205,6 +206,8 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
       pDoc->SetStatusLineModeInfoMessage();
     }
 
+    std::vector<CEntity*> current_selection;
+
     // remove all combo entries
     ResetContent();
     // if document exists and mode is entities
@@ -219,9 +222,11 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
       // lock selection's dynamic container
       pDoc->m_selEntitySelection.Lock();
 
+      current_selection.reserve(pDoc->m_selEntitySelection.Count());
       // for each of the selected entities
       FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
       {
+        current_selection.push_back(iten);
         // if this is first entity in dynamic container
         if( pDoc->m_selEntitySelection.Pointer(0) == iten)
         {
@@ -279,6 +284,8 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
     {
       DisableCombo();
     }
+
+    EventHub::instance().CurrentEntitySelectionChanged(current_selection);
 
     // index of property that is selected (trying to keep the same property active)
     INDEX iSelectedProperty = 0;

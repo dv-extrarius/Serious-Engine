@@ -559,6 +559,7 @@ public:
 
 	//{{AFX_MSG(CWorldEditorApp)
 	afx_msg void OnAppAbout();
+  afx_msg void OnQtAbout();
 	afx_msg void OnFilePreferences();
 	afx_msg void OnFileOpen();
 	afx_msg void OnImport3DObject();
