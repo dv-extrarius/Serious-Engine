@@ -72,15 +72,29 @@ public:
     mp_winWidget->show();
     mp_winWidget->setEnabled(false);
 
+    QObject::connect(mp_tree_model, &PropertyTreeModel::dataChanged, mp_winWidget.get(), [this]
+      (const QModelIndex& top_left, const QModelIndex& bottom_right, const QVector<int>&)
+      {
+        if (top_left.parent() == bottom_right.parent())
+        {
+          RemoveIndexWidgets(top_left.parent(), top_left.row(), bottom_right.row());
+          CreateIndexWidgets(top_left.parent(), top_left.row(), bottom_right.row());
+        } else {
+          RemoveIndexWidgets(QModelIndex(), 0, mp_tree_model->rowCount() - 1);
+          CreateIndexWidgets(QModelIndex(), 0, mp_tree_model->rowCount() - 1);
+        }
+        mp_tree_view->update();
+      });
+
     QObject::connect(mp_tree_model, &PropertyTreeModel::rowsInserted, mp_winWidget.get(), [this]
-    (const QModelIndex& parent, int row_start, int row_end)
+      (const QModelIndex& parent, int row_start, int row_end)
       {
         CreateIndexWidgets(parent, row_start, row_end);
         mp_tree_view->update();
       });
 
     QObject::connect(mp_tree_model, &PropertyTreeModel::rowsRemoved, mp_winWidget.get(), [this]
-    (const QModelIndex& parent, int row_start, int row_end)
+      (const QModelIndex& parent, int row_start, int row_end)
       {
         RemoveIndexWidgets(parent, row_start, row_end);
         mp_tree_view->update();

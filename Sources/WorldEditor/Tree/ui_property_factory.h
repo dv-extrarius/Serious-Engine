@@ -14,7 +14,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 #ifndef UI_PROPERTY_FACTORY_H
 #define UI_PROPERTY_FACTORY_H
-#include "base_property_tree_item.h"
+#include "base_entity_property_tree_item.h"
 
 #include <functional>
 #include <map>
@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class UIPropertyFactory
 {
 public:
-  using TFactory = std::function<BasePropertyTreeItem* (CEntity*, CEntityProperty*, BasePropertyTreeItem*)>;
+  using TFactory = std::function<BaseEntityPropertyTreeItem* (BasePropertyTreeItem*)>;
 
   static UIPropertyFactory& Instance();
 

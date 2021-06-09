@@ -12,28 +12,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
-#ifndef PROPERTY_STRING_H
-#define PROPERTY_STRING_H
+#ifndef CLICKABLE_LABEL_H
+#define CLICKABLE_LABEL_H
 
-#include "base_entity_property_tree_item.h"
+#include <QLabel>
 
-#include <QPointer>
-#include <QCheckBox>
-
-class Property_String : public BaseEntityPropertyTreeItem
+class ClickableLabel : public QLabel
 {
+  Q_OBJECT
+
 public:
-  Property_String(BasePropertyTreeItem* parent);
+  explicit ClickableLabel(const QString& text, QWidget* parent = nullptr);
 
-  QWidget* CreateEditor(QWidget* parent) override;
-
-  IMPL_GENERIC_PROPERTY_FUNCTIONS(CTString)
+  Q_SIGNAL void clicked();
 
 protected:
-  bool _ChangesDocument() const override;
-
-private:
-  QMetaObject::Connection m_editor_connection;
+  void mousePressEvent(QMouseEvent* event) override;
 };
 
 #endif

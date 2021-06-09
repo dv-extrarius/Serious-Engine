@@ -54,16 +54,6 @@ BasePropertyTreeItem* BasePropertyTreeItem::parentItem()
   return m_parentItem;
 }
 
-QWidget* BasePropertyTreeItem::CreateEditor(QWidget* parent)
-{
-  return nullptr;
-}
-
-bool BasePropertyTreeItem::editable() const
-{
-  return false;
-}
-
 int BasePropertyTreeItem::row() const
 {
   if (m_parentItem)

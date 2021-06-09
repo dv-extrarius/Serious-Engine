@@ -272,7 +272,9 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <ClCompile Include="TerrainEditing.cpp" />
     <ClCompile Include="TerrainInterface.cpp" />
     <ClCompile Include="ToolTipWnd.cpp" />
+    <ClCompile Include="Tree\base_entity_property_tree_item.cpp" />
     <ClCompile Include="Tree\base_property_tree_item.cpp" />
+    <ClCompile Include="Tree\clickable_label.cpp" />
     <ClCompile Include="Tree\properties_entity_root.cpp" />
     <ClCompile Include="Tree\property_bool.cpp" />
     <ClCompile Include="Tree\property_string.cpp" />
@@ -475,6 +477,22 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
       <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc</Outputs>
     </CustomBuild>
+    <CustomBuild Include="Tree\clickable_label.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="Tree\base_entity_property_tree_item.h">
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+    </ClInclude>
     <ClInclude Include="Tree\properties_entity_root.h" />
     <ClInclude Include="Tree\property_string.h" />
     <ClInclude Include="Tree\tree_icons.qrc.h" />
@@ -497,6 +515,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin\Debug\QtSolutions_MFCMigratio
     <None Include="Tree\base_property_tree_item.h.moc">
       <FileType>Document</FileType>
     </None>
+    <None Include="Tree\clickable_label.h.moc" />
     <None Include="Tree\property_tree_model.h.moc" />
     <None Include="Tree\property_item_delegate.h.moc" />
     <CustomBuild Include="Tree\tree_icons.qrc">

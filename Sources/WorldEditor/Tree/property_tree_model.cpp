@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "base_property_tree_item.h"
 #include "properties_entity_root.h"
 #include "ui_property_factory.h"
+#include "clickable_label.h"
 
 class _HeaderTreeItem : public BasePropertyTreeItem
 {
@@ -73,9 +74,22 @@ QWidget* PropertyTreeModel::CreateEditor(const QModelIndex& index, QWidget* pare
     return nullptr;
 
   auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
-  if (!item->editable())
+  auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
+  if (!entity_item)
     return nullptr;
-  return item->CreateEditor(parent);
+
+  if (entity_item->ValueIsCommonForAllEntities())
+  {
+    return entity_item->CreateEditor(parent);
+  } else {
+    auto* mixed_editor = new ClickableLabel("(mixed)", parent);
+    QObject::connect(mixed_editor, &ClickableLabel::clicked, entity_item,
+      [this, entity_item]
+      {
+        entity_item->SetFirstValueToAllEntities();
+      });
+    return mixed_editor;
+  }
 }
 
 void PropertyTreeModel::Clear()
@@ -163,6 +177,8 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   int starting_row = parent_item->childCount();
   int inserted_rows = 0;
 
+
+  // TODO find common properties!
   CEntity* penEntity = *entities.begin();
   CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
   for (; pdecDLLClass; pdecDLLClass = pdecDLLClass->dec_pdecBase)
@@ -170,13 +186,14 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
     for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
     {
       CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
-      // don't add properties with no name
+      // dont add properties with no name
       if (!(epProperty.ep_strName != CTString("")))
         continue;
 
       if (UIPropertyFactory::Instance().HasFactoryFor(epProperty.ep_eptType))
       {
-        std::unique_ptr<BasePropertyTreeItem> new_item(UIPropertyFactory::Instance().GetFactoryFor(epProperty.ep_eptType)(penEntity, &epProperty, parent_item));
+        std::unique_ptr<BaseEntityPropertyTreeItem> new_item(UIPropertyFactory::Instance().GetFactoryFor(epProperty.ep_eptType)(parent_item));
+        new_item->_SetEntitiesAndProperty(entities, &epProperty);
         _AppendItem(std::move(new_item), *parent_item);
         ++inserted_rows;
       }
@@ -198,8 +215,6 @@ QVariant PropertyTreeModel::data(const QModelIndex& index, int role) const
     return QVariant();
 
   BasePropertyTreeItem* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
-  if (role == Qt::EditRole && !item->editable())
-    return QVariant();
   return item->data(index.column(), role);
 }
 
@@ -208,10 +223,7 @@ Qt::ItemFlags PropertyTreeModel::flags(const QModelIndex &index) const
   if (!index.isValid())
     return Qt::NoItemFlags;
 
-  auto item_flags = QAbstractItemModel::flags(index);
-  if (static_cast<BasePropertyTreeItem*>(index.internalPointer())->editable())
-    item_flags |= Qt::ItemIsEditable;
-  return item_flags;
+  return QAbstractItemModel::flags(index);
 }
 
 QVariant PropertyTreeModel::headerData(int section, Qt::Orientation orientation, int role) const

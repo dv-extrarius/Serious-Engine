@@ -16,29 +16,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdAfx.h"
 #include "property_string.h"
 #include "ui_property_factory.h"
-#include "EventHub.h"
 
 #include <QLineEdit>
 
-Property_String::Property_String(CEntity* entity, CEntityProperty* prop, BasePropertyTreeItem* parent)
-  : BasePropertyTreeItem(parent)
-  , mp_entity(entity)
-  , mp_property(prop)
+Property_String::Property_String(BasePropertyTreeItem* parent)
+  : BaseEntityPropertyTreeItem(parent)
 {
 }
 
-QVariant Property_String::data(int column, int role) const
-{
-  if (role != Qt::DisplayRole || (column != 0 && column != 2))
-    return QVariant();
-
-  if (column == 0)
-    return QString(mp_property->ep_strName);
-
-  return QString("CTString");
-}
-
-bool Property_String::editable() const
+bool Property_String::_ChangesDocument() const
 {
   return true;
 }
@@ -47,36 +33,25 @@ QWidget* Property_String::CreateEditor(QWidget* parent)
 {
   QObject::disconnect(m_editor_connection);
   auto* editor = new QLineEdit(parent);
-  editor->setStyleSheet("background-color: transparent;");
-  editor->setText(ENTITYPROPERTY(mp_entity, mp_property->ep_slOffset, CTString).str_String);
+  editor->setStyleSheet("background-color: transparent;border: 0px;");
+  editor->setText(_CurrentPropValue().str_String);
 
   m_editor_connection = QObject::connect(editor, &QLineEdit::editingFinished, [this, editor]
     {
-      mp_entity->End();
-      ENTITYPROPERTY(mp_entity, mp_property->ep_slOffset, CTString) = editor->text().toLocal8Bit().data();
-      mp_entity->Initialize();
-
-      CWorldEditorDoc* pDoc = theApp.GetDocument();
-      pDoc->SetModifiedFlag(TRUE);
-      pDoc->UpdateAllViews(NULL);
-      // mark that document changed so that OnIdle on CSG destination combo would
-      // refresh combo entries (because we could be changing world name)
-      pDoc->m_chDocument.MarkChanged();
-
-      EventHub::instance().PropertyChanged({ mp_entity }, mp_property);
-      Changed();
+      CTString new_value = editor->text().toLocal8Bit().data();
+      _WriteProperty(new_value);
     });
   return editor;
 }
 
 /*******************************************************************************************/
 static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_STRING,
-  [](CEntity* entity, CEntityProperty* prop, BasePropertyTreeItem* parent)
+  [](BasePropertyTreeItem* parent)
   {
-    return new Property_String(entity, prop, parent);
+    return new Property_String(parent);
   });
 static UIPropertyFactory::Registrar g_registrar_translatable(CEntityProperty::PropertyType::EPT_STRINGTRANS,
-  [](CEntity* entity, CEntityProperty* prop, BasePropertyTreeItem* parent)
+  [](BasePropertyTreeItem* parent)
   {
-    return new Property_String(entity, prop, parent);
+    return new Property_String(parent);
   });

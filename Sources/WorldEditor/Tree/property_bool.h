@@ -15,23 +15,21 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef PROPERTY_BOOL_H
 #define PROPERTY_BOOL_H
 
-#include "base_property_tree_item.h"
+#include "base_entity_property_tree_item.h"
 
 #include <QPointer>
 #include <QCheckBox>
 
-class Property_Bool : public BasePropertyTreeItem
+class Property_Bool : public BaseEntityPropertyTreeItem
 {
 public:
-  Property_Bool(CEntity* entity, CEntityProperty* prop, BasePropertyTreeItem* parent);
+  Property_Bool(BasePropertyTreeItem* parent);
 
-  QVariant data(int column, int role) const override;
-  bool     editable() const override;
   QWidget* CreateEditor(QWidget* parent) override;
 
+  IMPL_GENERIC_PROPERTY_FUNCTIONS(BOOL)
+
 private:
-  CEntity*            mp_entity;
-  CEntityProperty*    mp_property;
   QMetaObject::Connection m_editor_connection;
 };
 

@@ -28,9 +28,7 @@ public:
     explicit BasePropertyTreeItem(BasePropertyTreeItem* parentItem = nullptr);
     virtual ~BasePropertyTreeItem();
 
-    virtual QWidget*      CreateEditor(QWidget* parent);
     virtual QVariant      data(int column, int role) const = 0;
-    virtual bool          editable() const;
 
     void                  Clear();
 
