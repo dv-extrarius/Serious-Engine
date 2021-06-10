@@ -64,17 +64,22 @@ protected:
   {
     auto beg_it = m_entities.begin();
     auto cur_it = beg_it;
+    CEntityProperty* beg_actual_property = (*beg_it)->PropertyForName(mp_property->pid_strName);
     for (++cur_it; cur_it != m_entities.end(); ++cur_it)
-      if (ENTITYPROPERTY((*cur_it), mp_property->ep_slOffset, TPropType) !=
-          ENTITYPROPERTY((*beg_it), mp_property->ep_slOffset, TPropType))
+    {
+      CEntityProperty* cur_actual_property = (*cur_it)->PropertyForName(mp_property->pid_strName);
+      if (ENTITYPROPERTY((*cur_it), cur_actual_property->ep_slOffset, TPropType) !=
+          ENTITYPROPERTY((*beg_it), beg_actual_property->ep_slOffset, TPropType))
         return false;
+    }
     return true;
   }
 
   template<typename TPropType>
   const TPropType& _CurrentPropValueT() const
   {
-    return ENTITYPROPERTY((*m_entities.begin()), mp_property->ep_slOffset, TPropType);
+    CEntityProperty* actual_property = (*m_entities.begin())->PropertyForName(mp_property->pid_strName);
+    return ENTITYPROPERTY((*m_entities.begin()), actual_property->ep_slOffset, TPropType);
   }
 
   template<typename TPropType>
@@ -83,7 +88,8 @@ protected:
     for (auto* entity : m_entities)
     {
       entity->End();
-      ENTITYPROPERTY(entity, mp_property->ep_slOffset, TPropType) = prop_value;
+      CEntityProperty* actual_property = entity->PropertyForName(mp_property->pid_strName);
+      ENTITYPROPERTY(entity, actual_property->ep_slOffset, TPropType) = prop_value;
       entity->Initialize();
     }
 
@@ -95,16 +101,16 @@ protected:
       pDoc->m_chDocument.MarkChanged();
 
     Changed();
-    EventHub::instance().PropertyChanged(m_entities, mp_property);
+    EventHub::instance().PropertyChanged(m_entities, mp_property.get());
   }
 
 private:
   friend class PropertyTreeModel;
-  void _SetEntitiesAndProperty(const std::set<CEntity*>& entities, CEntityProperty* prop);
+  void _SetEntitiesAndProperty(const std::set<CEntity*>& entities, std::unique_ptr<CPropertyID>&& prop);
 
 protected:
-  std::set<CEntity*> m_entities;
-  CEntityProperty*   mp_property = nullptr;
+  std::set<CEntity*>           m_entities;
+  std::unique_ptr<CPropertyID> mp_property;
 };
 
 #endif

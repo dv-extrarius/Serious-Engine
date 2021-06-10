@@ -23,9 +23,9 @@ BaseEntityPropertyTreeItem::BaseEntityPropertyTreeItem(BasePropertyTreeItem* par
   : BasePropertyTreeItem(parent)
 {
   QObject::connect(&EventHub::instance(), &EventHub::PropertyChanged, this,
-    [this](const std::set<CEntity*>& entities, CEntityProperty* prop)
+    [this](const std::set<CEntity*>& entities, CPropertyID* prop)
     {
-      if (prop->ep_eptType == mp_property->ep_eptType)
+      if (prop->pid_eptType == mp_property->pid_eptType)
       {
         std::vector<CEntity*> common_entities;
         std::set_intersection(entities.begin(), entities.end(),
@@ -43,7 +43,7 @@ QVariant BaseEntityPropertyTreeItem::data(int column, int role) const
     return QVariant();
 
   if (column == 0)
-    return QString(mp_property->ep_strName);
+    return QString(mp_property->pid_strName);
 
   return _GetTypeName();
 }
@@ -53,10 +53,10 @@ bool BaseEntityPropertyTreeItem::_ChangesDocument() const
   return false;
 }
 
-void BaseEntityPropertyTreeItem::_SetEntitiesAndProperty(const std::set<CEntity*>& entities, CEntityProperty* prop)
+void BaseEntityPropertyTreeItem::_SetEntitiesAndProperty(const std::set<CEntity*>& entities, std::unique_ptr<CPropertyID>&& prop)
 {
   if (!m_entities.empty() || mp_property)
     throw std::runtime_error("Entities were already set to this item! Examine callstack to fix this");
   m_entities = entities;
-  mp_property = prop;
+  mp_property = std::move(prop);
 }

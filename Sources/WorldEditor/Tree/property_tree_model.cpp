@@ -21,26 +21,160 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ui_property_factory.h"
 #include "clickable_label.h"
 
-class _HeaderTreeItem : public BasePropertyTreeItem
-{
-public:
-  _HeaderTreeItem()
-    : BasePropertyTreeItem(nullptr)
+namespace
+{ 
+  // copied from PropertyComboBox.cpp
+  void _JoinProperties(std::list<std::unique_ptr<CPropertyID>>& properties, CEntity* penEntity, BOOL bIntersect)
   {
+    // if we should add all of this entity's properties (if this is first entity)
+    if (!bIntersect)
+    {
+      // obtain entity class ptr
+      CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
+      // for all classes in hierarchy of this entity
+      for (; pdecDLLClass != NULL; pdecDLLClass = pdecDLLClass->dec_pdecBase)
+      {
+        // for all properties
+        for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
+        {
+          CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
+          // dont add properties with no name
+          if (epProperty.ep_strName != CTString(""))
+          {
+            CAnimData* pAD = NULL;
+            if (epProperty.ep_eptType == CEntityProperty::EPT_ANIMATION)
+              pAD = penEntity->GetAnimData(epProperty.ep_slOffset);
+
+            properties.push_back(std::make_unique<CPropertyID>(epProperty.ep_strName, epProperty.ep_eptType, &epProperty, pAD));
+          }
+        }
+      }
+    }
+    // in case of intersecting properties we should take one of existing properties in list
+    // and see if investigating entity has property with same descriptive name
+    // If not, remove it that existing property.
+    else
+    {
+      for (auto itProp = properties.begin(); itProp != properties.end();)
+      {
+        CTString strCurrentName = (*itProp)->pid_strName;
+        CEntityProperty::PropertyType eptCurrentType = (*itProp)->pid_eptType;
+        // mark that property with same name is not found
+        BOOL bSameFound = FALSE;
+
+        // obtain entity class ptr
+        CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
+        // for all classes in hierarchy of this entity
+        for (; pdecDLLClass != NULL; pdecDLLClass = pdecDLLClass->dec_pdecBase)
+        {
+          // for all properties
+          for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
+          {
+            CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
+            CAnimData* pAD = NULL;
+            // remember anim data
+            if (epProperty.ep_eptType == CEntityProperty::EPT_ANIMATION)
+            {
+              pAD = penEntity->GetAnimData(epProperty.ep_slOffset);
+            }
+
+            // create current CPropertyID
+            CPropertyID PropertyID = CPropertyID(epProperty.ep_strName, epProperty.ep_eptType,
+              &epProperty, pAD);
+
+            // is this property same as one we are investigating
+            if ((strCurrentName == PropertyID.pid_strName) &&
+              (eptCurrentType == PropertyID.pid_eptType))
+            {
+              // if propperty is enum, enum ptr must also be the same
+              if ((*itProp)->pid_eptType == CEntityProperty::EPT_ENUM)
+              {
+                // only then,
+                if ((*itProp)->pid_penpProperty->ep_pepetEnumType ==
+                  PropertyID.pid_penpProperty->ep_pepetEnumType)
+                {
+                  // same property is found
+                  bSameFound = TRUE;
+                }
+                else
+                {
+                  bSameFound = FALSE;
+                }
+                goto pcb_OutLoop_JoinProperties;
+              }
+              // if propperty is animation, anim data ptr must be the same
+              else if ((*itProp)->pid_eptType == CEntityProperty::EPT_ANIMATION)
+              {
+                if ((*itProp)->pid_padAnimData == PropertyID.pid_padAnimData)
+                {
+                  // same property is found
+                  bSameFound = TRUE;
+                }
+                else
+                {
+                  bSameFound = FALSE;
+                }
+                goto pcb_OutLoop_JoinProperties;
+              }
+              else
+              {
+                // same property is found
+                bSameFound = TRUE;
+                goto pcb_OutLoop_JoinProperties;
+              }
+            }
+          }
+        }
+      pcb_OutLoop_JoinProperties:;
+        // if property with same name is not found
+        if (!bSameFound)
+          // remove our investigating property from list
+          // and delete it
+          itProp = properties.erase(itProp);
+        else
+          ++itProp;
+      }
+    }
   }
 
-  QVariant data(int column, int role) const override
+  std::list<std::unique_ptr<CPropertyID>> _CollectProperties(const std::set<CEntity*>& entities)
   {
-    if (column < 0 || column > 2)
-      return QVariant();
+    std::list<std::unique_ptr<CPropertyID>> properties;
+    if (!entities.empty())
+    {
+      auto beg_it = entities.begin();
+      auto cur_it = beg_it;
+      _JoinProperties(properties, *beg_it, FALSE);
+      for (++cur_it; cur_it != entities.end(); ++cur_it)
+        _JoinProperties(properties, *cur_it, TRUE);
 
-    if (column == 0)
-      return "Name";
-    if (column == 1)
-      return "Value";
-    return "Type";
+      properties.push_back(std::make_unique<CPropertyID>("Spawn flags", CEntityProperty::EPT_SPAWNFLAGS, nullptr, nullptr));
+      properties.push_back(std::make_unique<CPropertyID>("Parent", CEntityProperty::EPT_PARENT, nullptr, nullptr));
+    }
+    return properties;
   }
-};
+
+  class _HeaderTreeItem : public BasePropertyTreeItem
+  {
+  public:
+    _HeaderTreeItem()
+      : BasePropertyTreeItem(nullptr)
+    {
+    }
+
+    QVariant data(int column, int role) const override
+    {
+      if (column < 0 || column > 2)
+        return QVariant();
+
+      if (column == 0)
+        return "Name";
+      if (column == 1)
+        return "Value";
+      return "Type";
+    }
+  };
+} // anonymous namespace
 
 
 PropertyTreeModel::PropertyTreeModel(QObject* parent)
@@ -106,7 +240,7 @@ void PropertyTreeModel::_AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item
     [this, item_raw]
     {
       int row = item_raw->row();
-      dataChanged(createIndex(row, 0, item_raw->parentItem()), createIndex(row, 2, item_raw->parentItem()));
+      dataChanged(createIndex(row, 0, item_raw), createIndex(row, 2, item_raw));
     });
   parent.appendChild(std::move(item));
 }
@@ -140,63 +274,20 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
 {
   BasePropertyTreeItem* parent_item = static_cast<BasePropertyTreeItem*>(parent.internalPointer());
 
-  /*
-  * collect common properties from entities here
-  * 
-  * 
-    // obtain entity class ptr
-    CDLLEntityClass *pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
-    // for all classes in hierarchy of this entity
-    for(;pdecDLLClass!=NULL; pdecDLLClass = pdecDLLClass->dec_pdecBase)
-    {
-      // for all properties
-      for(INDEX iProperty=0; iProperty<pdecDLLClass->dec_ctProperties; iProperty++)
-      {
-        CEntityProperty &epProperty = pdecDLLClass->dec_aepProperties[iProperty];
-        // don't add properties with no name
-        if( epProperty.ep_strName != CTString("") )
-        {
-          CAnimData *pAD = NULL;
-          // remember anim data
-          if( epProperty.ep_eptType == CEntityProperty::EPT_ANIMATION)
-          {
-            pAD = penEntity->GetAnimData( epProperty.ep_slOffset);
-          }
-          // create current CPropertyID
-          CPropertyID *pPropertyID = new CPropertyID( epProperty.ep_strName,
-            epProperty.ep_eptType, &epProperty, pAD);
-          // if we should add all of this entity's properties (if this is first entity)
-          // and add it into list
-          m_lhProperties.AddTail( pPropertyID->pid_lnNode);
-        }
-      }
-    }
-  * 
-  * 
-  */
   int starting_row = parent_item->childCount();
   int inserted_rows = 0;
 
+  auto common_properties = _CollectProperties(entities);
 
-  // TODO find common properties!
-  CEntity* penEntity = *entities.begin();
-  CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
-  for (; pdecDLLClass; pdecDLLClass = pdecDLLClass->dec_pdecBase)
+  for (auto it = common_properties.begin(); it != common_properties.end(); ++it)
   {
-    for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
+    std::unique_ptr<CPropertyID>& property = *it;
+    if (UIPropertyFactory::Instance().HasFactoryFor(property->pid_eptType))
     {
-      CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
-      // dont add properties with no name
-      if (!(epProperty.ep_strName != CTString("")))
-        continue;
-
-      if (UIPropertyFactory::Instance().HasFactoryFor(epProperty.ep_eptType))
-      {
-        std::unique_ptr<BaseEntityPropertyTreeItem> new_item(UIPropertyFactory::Instance().GetFactoryFor(epProperty.ep_eptType)(parent_item));
-        new_item->_SetEntitiesAndProperty(entities, &epProperty);
-        _AppendItem(std::move(new_item), *parent_item);
-        ++inserted_rows;
-      }
+      std::unique_ptr<BaseEntityPropertyTreeItem> new_item(UIPropertyFactory::Instance().GetFactoryFor(property->pid_eptType)(parent_item));
+      new_item->_SetEntitiesAndProperty(entities, std::move(property));
+      _AppendItem(std::move(new_item), *parent_item);
+      ++inserted_rows;
     }
   }
   if (inserted_rows > 0)

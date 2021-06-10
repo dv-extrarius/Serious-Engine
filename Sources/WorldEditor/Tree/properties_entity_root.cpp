@@ -22,10 +22,10 @@ EntityRootProperties::EntityRootProperties(BasePropertyTreeItem* parent, const s
   , m_entities(entities)
 {
   QObject::connect(&EventHub::instance(), &EventHub::PropertyChanged, this,
-    [this](const std::set<CEntity*>& entities, CEntityProperty* prop)
+    [this](const std::set<CEntity*>& entities, CPropertyID* prop)
     {
-      if (prop->ep_eptType == CEntityProperty::PropertyType::EPT_STRING ||
-          prop->ep_eptType == CEntityProperty::PropertyType::EPT_STRINGTRANS)
+      if (prop->pid_eptType == CEntityProperty::PropertyType::EPT_STRING ||
+          prop->pid_eptType == CEntityProperty::PropertyType::EPT_STRINGTRANS)
       {
         std::vector<CEntity*> common_entities;
         std::set_intersection(entities.begin(), entities.end(),
