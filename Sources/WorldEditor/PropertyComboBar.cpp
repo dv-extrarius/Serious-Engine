@@ -999,9 +999,6 @@ void CPropertyComboBar::ArrangeControls()
             // obtain enum property description object
             CEntityPropertyEnumType *epEnum = penpProperty->ep_pepetEnumType;
 
-            // lock selection's dynamic container
-            pDoc->m_selEntitySelection.Lock();
-
             BOOL bAllEntitiesHaveSameEnum = TRUE;
             INDEX iCurrentEnumID;
 
@@ -1025,8 +1022,6 @@ void CPropertyComboBar::ArrangeControls()
                 }
               }
             }
-            // unlock selection's dynamic container
-            pDoc->m_selEntitySelection.Unlock();
 
             // invalid choosed enum ID
             INDEX iSelectedEnumID = -1;
@@ -1136,9 +1131,6 @@ void CPropertyComboBar::ArrangeControls()
             // set NULL entity ptr as item's data
             m_EditEnumComboBox.SetItemData( iAddedAs, NULL);
 
-            // lock selection's dynamic container
-            pDoc->m_selEntitySelection.Lock();
-
             // to hold intersecting entity ptr
             CEntity *penEntity;
             // for each of the selected entities
@@ -1170,8 +1162,6 @@ void CPropertyComboBar::ArrangeControls()
                 }
               }
             }
-            // unlock selection's dynamic container
-            pDoc->m_selEntitySelection.Unlock();
           
             if( penEntity != (CEntity *)-1)
             {
@@ -1198,9 +1188,7 @@ void CPropertyComboBar::ArrangeControls()
           else if( ppidProperty->pid_eptType == CEntityProperty::EPT_ANIMATION)
           {
             // get first selected entity
-            pDoc->m_selEntitySelection.Lock();
             CEntity *penFirst = pDoc->m_selEntitySelection.GetFirstInSelection();
-            pDoc->m_selEntitySelection.Unlock();
             CAnimData *pAD = penFirst->GetAnimData( penpProperty->ep_slOffset);
             if( pAD != NULL)
             {
@@ -1217,8 +1205,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
 
-            // lock selection's dynamic container
-            pDoc->m_selEntitySelection.Lock();
             INDEX iJointAnimation = -1;
             // for each of the selected entities
             for (CEntity* iten : pDoc->m_selEntitySelection)
@@ -1239,8 +1225,6 @@ void CPropertyComboBar::ArrangeControls()
                 }
               }
             }
-            // unlock selection's dynamic container
-            pDoc->m_selEntitySelection.Unlock();
           
             if( iJointAnimation != -1)
             {
@@ -1285,9 +1269,6 @@ void CPropertyComboBar::ArrangeControls()
               m_EditEnumComboBox.SetItemData( iAddedAs, (ULONG) iIllumination);
             }
 
-            // lock selection's dynamic container
-            pDoc->m_selEntitySelection.Lock();
-
             INDEX iJointIllumination = -1;
             // for each of the selected entities
             for (CEntity* iten : pDoc->m_selEntitySelection)
@@ -1308,8 +1289,6 @@ void CPropertyComboBar::ArrangeControls()
                 }
               }
             }
-            // unlock selection's dynamic container
-            pDoc->m_selEntitySelection.Unlock();
           
             if( iJointIllumination != -1)
             {
@@ -1345,8 +1324,6 @@ void CPropertyComboBar::ArrangeControls()
         {
           // edit string control is to be shown
           iString = SW_SHOW;
-          // lock selection's dynamic container
-          pDoc->m_selEntitySelection.Lock();
           // for each of the selected entities
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
@@ -1369,8 +1346,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
           }
-          // unlock selection's dynamic container
-          pDoc->m_selEntitySelection.Unlock();
           break;
         }
       case CEntityProperty::EPT_FLOAT:
@@ -1380,7 +1355,6 @@ void CPropertyComboBar::ArrangeControls()
           iFloat = SW_SHOW;
           iFloatRangeText = SW_SHOW;
         
-          pDoc->m_selEntitySelection.Lock();
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
             CEntityProperty *penpProperty = iten->PropertyForName( ppidProperty->pid_strName);
@@ -1415,7 +1389,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
           }
-          pDoc->m_selEntitySelection.Unlock();
 
           sprintf( strMessage, "Float");
           m_strFloatRange = strMessage;
@@ -1428,7 +1401,6 @@ void CPropertyComboBar::ArrangeControls()
       case CEntityProperty::EPT_ANGLE3D:
         {
           iAngle3D = SW_SHOW;
-          pDoc->m_selEntitySelection.Lock();
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
             CEntityProperty *penpProperty = iten->PropertyForName( ppidProperty->pid_strName);
@@ -1447,7 +1419,6 @@ void CPropertyComboBar::ArrangeControls()
               if( m_fEditingBanking != DegAngle( aCurrent(3))) m_fEditingBanking = 0.0f;
             }
           }
-          pDoc->m_selEntitySelection.Unlock();
           break;
         }
       case CEntityProperty::EPT_FLOATAABBOX3D:
@@ -1456,8 +1427,6 @@ void CPropertyComboBar::ArrangeControls()
           // mark that all entities have same value for current bbox axis
           BOOL bAllHaveSameBBoxValue = TRUE;
 
-          // lock selection's dynamic container
-          pDoc->m_selEntitySelection.Lock();
           // for each of the selected entities
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
@@ -1497,8 +1466,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
           }
-          // unlock selection's dynamic container
-          pDoc->m_selEntitySelection.Unlock();
           // refresh views
           pDoc->UpdateAllViews( NULL);
           break;
@@ -1511,8 +1478,6 @@ void CPropertyComboBar::ArrangeControls()
           // mark that all entities have same index property value
           BOOL bAllHaveSameIndex = TRUE;
 
-          // lock selection's dynamic container
-          pDoc->m_selEntitySelection.Lock();
           // for each of the selected entities
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
@@ -1536,8 +1501,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
           }
-          // unlock selection's dynamic container
-          pDoc->m_selEntitySelection.Unlock();
           sprintf( strMessage, "Integer");
           m_strIndexRange = strMessage;
           break;
@@ -1578,8 +1541,6 @@ void CPropertyComboBar::ArrangeControls()
         {
           // intersecting color
           COLOR colIntersected;
-          // lock selection's dynamic container
-          pDoc->m_selEntitySelection.Lock();
           // for each of the selected entities
           for (CEntity* iten : pDoc->m_selEntitySelection)
           {
@@ -1606,8 +1567,6 @@ void CPropertyComboBar::ArrangeControls()
               }
             }
           }
-          // unlock selection's dynamic container
-          pDoc->m_selEntitySelection.Unlock();
           iChooseColorText = SW_SHOW;
           iColor = SW_SHOW;
           break;
@@ -1776,8 +1735,6 @@ void CPropertyComboBar::OnUpdateEditFlags(CCmdUI* pCmdUI)
 void CPropertyComboBar::SetIntersectingEntityClassName(void)
 {
   CWorldEditorDoc *pDoc = theApp.GetDocument();
-  // lock selection's dynamic container
-  pDoc->m_selEntitySelection.Lock();
   // string to contain intersecting class name
   CTString strIntersectingClass = "No entity class";
   CTString strIntersectingName = "No name";
@@ -1827,8 +1784,6 @@ void CPropertyComboBar::SetIntersectingEntityClassName(void)
   m_strEntityClass = strIntersectingClass;
   m_strEntityName = strIntersectingName;
   m_strEntityDescription = strIntersectingDescription;
-  // unlock selection's dynamic container
-  pDoc->m_selEntitySelection.Unlock();
 }
 
 void CPropertyComboBar::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 

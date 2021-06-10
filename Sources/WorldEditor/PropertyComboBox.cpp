@@ -217,9 +217,6 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
         delete &itDel.Current();
       }
 
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
-
       // for each of the selected entities
       for (CEntity* iten : pDoc->m_selEntitySelection)
       {
@@ -235,8 +232,6 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
           JoinProperties( iten, TRUE);
         }
       }
-      // unlock selection's dynamic container
-      pDoc->m_selEntitySelection.Unlock();
 
       if( pDoc->m_selEntitySelection.Count() != 0)
       {

@@ -30,16 +30,6 @@ size_t NewEntitySelection::Count() const
   return m_entities.size();
 }
 
-void NewEntitySelection::Lock() const
-{
-  // NOTHING, just for compatibility with CSelection
-}
-
-void NewEntitySelection::Unlock() const
-{
-  // NOTHING, just for compatibility with CSelection
-}
-
 BOOL NewEntitySelection::IsSelected(const CEntity& entity) const
 {
   return entity.IsSelected(ENF_SELECTED);

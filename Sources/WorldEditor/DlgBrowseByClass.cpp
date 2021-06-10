@@ -588,9 +588,7 @@ void CDlgBrowseByClass::FillListWithEntities(void)
   // select one that was selected before calling dialog
   if( pDoc->m_selEntitySelection.Count() == 1)
   {
-    pDoc->m_selEntitySelection.Lock();
     CEntity *penOnly = pDoc->m_selEntitySelection.GetFirstInSelection();
-    pDoc->m_selEntitySelection.Unlock();
 
     INDEX ctItems = m_listEntities.GetItemCount();
     for( INDEX iItem=0; iItem<ctItems; iItem++)

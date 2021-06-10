@@ -63,8 +63,6 @@ CTFileName CCtrlBrowseFile::GetIntersectingFile()
       !((ppidProperty->pid_eptType == CEntityProperty::EPT_FILENAME) ||
         (ppidProperty->pid_eptType == CEntityProperty::EPT_FILENAMENODEP)) ) return CTString("");
 
-  // lock selection's dynamic container
-  pDoc->m_selEntitySelection.Lock();
   // file name to contain selection intersecting file
   CTFileName fnIntersectingFile;
   CTFileNameNoDep fnIntersectingFileNoDep;
@@ -107,8 +105,6 @@ CTFileName CCtrlBrowseFile::GetIntersectingFile()
       }
     }
   }
-  // unlock selection's dynamic container
-  pDoc->m_selEntitySelection.Unlock();
   if( m_bFileNameNoDep)
   {
     return fnIntersectingFileNoDep;

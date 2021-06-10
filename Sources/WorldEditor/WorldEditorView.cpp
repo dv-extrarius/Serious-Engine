@@ -1024,9 +1024,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
   CEntity *penOnlySelected = NULL;
   if( pDoc->m_selEntitySelection.Count() == 1)
   {
-    pDoc->m_selEntitySelection.Lock();
     penOnlySelected = pDoc->m_selEntitySelection.GetFirstInSelection();
-    pDoc->m_selEntitySelection.Unlock();
   }
 
   // request vertex selecting from renderer
@@ -3550,8 +3548,6 @@ void CWorldEditorView::OnLButtonDblClk(UINT nFlags, CPoint point)
     // CTRL + LMB teleports entities
     if( (pDoc->m_selEntitySelection.Count() != 0) && (bCtrl) && (!bAlt) )
     {
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
       FLOATaabbox3D box;
       {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
@@ -4004,12 +4000,8 @@ void CWorldEditorView::SetEditingDataPaneInfo( BOOL bImidiateRepainting)
   // if we are in entity mode and there is selected entity
   else if( (bEntityMode) && ( pDoc->m_selEntitySelection.Count() != 0) )
   {
-    // lock selection's dynamic container
-    pDoc->m_selEntitySelection.Lock();
     // get first entity
     CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
-    // unlock selection's dynamic container
-    pDoc->m_selEntitySelection.Unlock();
     // get placement of first entity
     CPlacement3D plEntityOnePlacement = penEntityOne->GetPlacement();
     // if both mouses are pressed, we want to rotate entity so prepare text telling angles
@@ -9800,9 +9792,7 @@ void CWorldEditorView::OnKeyBackslash()
     CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
     if( pDoc->m_selEntitySelection.Count() == 1)
     {
-      pDoc->m_selEntitySelection.Lock();
       CEntity *penOnlySelected = pDoc->m_selEntitySelection.GetFirstInSelection();
-      pDoc->m_selEntitySelection.Unlock();
 
       CEntity *penToSelect = NULL;
       CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
@@ -9844,9 +9834,7 @@ void CWorldEditorView::OnKeyBackslash()
 void CWorldEditorView::OnSavePicturesForEnvironment()
 {
   CWorldEditorDoc* pDoc = GetDocument();
-  pDoc->m_selEntitySelection.Lock();
   CEntity *pen = pDoc->m_selEntitySelection.GetFirstInSelection();
-  pDoc->m_selEntitySelection.Unlock();
 
   CTFileName fnName = _EngineGUI.FileRequester( "Save pictures as ...",
     FILTER_TGA FILTER_ALL FILTER_END,"Environment pictures directory", "Textures\\");

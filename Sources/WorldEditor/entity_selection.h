@@ -26,8 +26,6 @@ public:
   ~NewEntitySelection();
 
   size_t Count() const;
-  void Lock() const;
-  void Unlock() const;
   BOOL IsSelected(const CEntity& entity) const;
   void Select(CEntity& entity);
   void Deselect(CEntity& entity);

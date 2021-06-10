@@ -80,12 +80,8 @@ void CDlgPgPosition::DoDataExchange(CDataExchange* pDX)
     // otherwise if we are in entity mode and there is only one entity selected
     else if( (pDoc->m_iMode == ENTITY_MODE) && ( pDoc->m_selEntitySelection.Count() == 1) )
     {
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
       // get first entity
       CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
-      // unlock selection's dynamic container
-      pDoc->m_selEntitySelection.Unlock();
 
       // get placement of first entity
       CPlacement3D plEntityOnePlacement = penEntityOne->GetPlacement();
@@ -136,12 +132,8 @@ void CDlgPgPosition::DoDataExchange(CDataExchange* pDX)
       // there must be only one entity selected
       ASSERT( pDoc->m_selEntitySelection.Count() == 1);
       
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
       // get first entity
       CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
-      // unlock selection's dynamic container
-      pDoc->m_selEntitySelection.Unlock();
 
       // get placement of first entity
       CPlacement3D plEntityOnePlacement = penEntityOne->GetPlacement();

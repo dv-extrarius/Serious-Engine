@@ -4027,9 +4027,7 @@ BOOL CWorldEditorDoc::IsCloneUpdatingAllowed(void)
   if( ctEntities == 1)
   {
     // get only selected entity
-    m_selEntitySelection.Lock();
     CEntity *penOnlySelected = m_selEntitySelection.GetFirstInSelection();
-    m_selEntitySelection.Unlock();
 
     // if entity doesn't have parent
     if( penOnlySelected->GetParent() == NULL)
@@ -4066,9 +4064,7 @@ void CWorldEditorDoc::OnUpdateClones()
   }
   
   // get only selected entity
-  m_selEntitySelection.Lock();
   CEntity *penOnlySelected = m_selEntitySelection.GetFirstInSelection();
-  m_selEntitySelection.Unlock();
 
   // clear selections before destroying some entities
   ClearSelections();

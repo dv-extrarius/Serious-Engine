@@ -22,26 +22,22 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "clickable_label.h"
 
 namespace
-{ 
-  // copied from PropertyComboBox.cpp
-  void _JoinProperties(std::list<std::unique_ptr<CPropertyID>>& properties, CEntity* penEntity, BOOL bIntersect)
+{
+  void _JoinProperties(std::list<std::unique_ptr<CPropertyID>>& properties, CEntity* penEntity, bool intersect)
   {
     // if we should add all of this entity's properties (if this is first entity)
-    if (!bIntersect)
+    if (!intersect)
     {
-      // obtain entity class ptr
       CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
-      // for all classes in hierarchy of this entity
-      for (; pdecDLLClass != NULL; pdecDLLClass = pdecDLLClass->dec_pdecBase)
+      for (; pdecDLLClass != nullptr; pdecDLLClass = pdecDLLClass->dec_pdecBase)
       {
-        // for all properties
         for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
         {
           CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
           // dont add properties with no name
           if (epProperty.ep_strName != CTString(""))
           {
-            CAnimData* pAD = NULL;
+            CAnimData* pAD = nullptr;
             if (epProperty.ep_eptType == CEntityProperty::EPT_ANIMATION)
               pAD = penEntity->GetAnimData(epProperty.ep_slOffset);
 
@@ -59,77 +55,49 @@ namespace
       {
         CTString strCurrentName = (*itProp)->pid_strName;
         CEntityProperty::PropertyType eptCurrentType = (*itProp)->pid_eptType;
-        // mark that property with same name is not found
-        BOOL bSameFound = FALSE;
+        bool same_found = false;
+        bool keep_looking = true;
 
-        // obtain entity class ptr
         CDLLEntityClass* pdecDLLClass = penEntity->GetClass()->ec_pdecDLLClass;
-        // for all classes in hierarchy of this entity
-        for (; pdecDLLClass != NULL; pdecDLLClass = pdecDLLClass->dec_pdecBase)
+        for (; keep_looking && pdecDLLClass; pdecDLLClass = pdecDLLClass->dec_pdecBase)
         {
-          // for all properties
           for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++)
           {
             CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
-            CAnimData* pAD = NULL;
-            // remember anim data
+            CAnimData* pAD = nullptr;
             if (epProperty.ep_eptType == CEntityProperty::EPT_ANIMATION)
-            {
               pAD = penEntity->GetAnimData(epProperty.ep_slOffset);
-            }
 
-            // create current CPropertyID
-            CPropertyID PropertyID = CPropertyID(epProperty.ep_strName, epProperty.ep_eptType,
-              &epProperty, pAD);
+            CPropertyID PropertyID(epProperty.ep_strName, epProperty.ep_eptType, &epProperty, pAD);
 
             // is this property same as one we are investigating
             if ((strCurrentName == PropertyID.pid_strName) &&
-              (eptCurrentType == PropertyID.pid_eptType))
+                (eptCurrentType == PropertyID.pid_eptType))
             {
               // if propperty is enum, enum ptr must also be the same
               if ((*itProp)->pid_eptType == CEntityProperty::EPT_ENUM)
               {
-                // only then,
-                if ((*itProp)->pid_penpProperty->ep_pepetEnumType ==
-                  PropertyID.pid_penpProperty->ep_pepetEnumType)
-                {
-                  // same property is found
-                  bSameFound = TRUE;
-                }
-                else
-                {
-                  bSameFound = FALSE;
-                }
-                goto pcb_OutLoop_JoinProperties;
+                if ((*itProp)->pid_penpProperty->ep_pepetEnumType == PropertyID.pid_penpProperty->ep_pepetEnumType)
+                  same_found = true;
               }
               // if propperty is animation, anim data ptr must be the same
               else if ((*itProp)->pid_eptType == CEntityProperty::EPT_ANIMATION)
               {
                 if ((*itProp)->pid_padAnimData == PropertyID.pid_padAnimData)
-                {
-                  // same property is found
-                  bSameFound = TRUE;
-                }
-                else
-                {
-                  bSameFound = FALSE;
-                }
-                goto pcb_OutLoop_JoinProperties;
+                  same_found = true;
               }
               else
               {
-                // same property is found
-                bSameFound = TRUE;
-                goto pcb_OutLoop_JoinProperties;
+                same_found = true;
               }
+              keep_looking = false;
+              break;
             }
           }
         }
-      pcb_OutLoop_JoinProperties:;
-        // if property with same name is not found
-        if (!bSameFound)
-          // remove our investigating property from list
-          // and delete it
+
+        // if property with same name is not found - remove our investigating property from list
+        if (!same_found)
           itProp = properties.erase(itProp);
         else
           ++itProp;
@@ -144,9 +112,9 @@ namespace
     {
       auto beg_it = entities.begin();
       auto cur_it = beg_it;
-      _JoinProperties(properties, *beg_it, FALSE);
+      _JoinProperties(properties, *beg_it, false);
       for (++cur_it; cur_it != entities.end(); ++cur_it)
-        _JoinProperties(properties, *cur_it, TRUE);
+        _JoinProperties(properties, *cur_it, true);
 
       properties.push_back(std::make_unique<CPropertyID>("Spawn flags", CEntityProperty::EPT_SPAWNFLAGS, nullptr, nullptr));
       properties.push_back(std::make_unique<CPropertyID>("Parent", CEntityProperty::EPT_PARENT, nullptr, nullptr));
