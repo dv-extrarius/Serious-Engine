@@ -396,33 +396,6 @@ ENGINE_API void SE_InitEngine(CTString strGameID)
   sys_strModName = _strModName;
   sys_strModExt  = _strModExt;
 
-// checking of crc
-#if 0
-  ULONG ulCRCActual = -2;
-  SLONG ulCRCExpected = -1;
-  try {
-    // get the checksum of engine
-    #ifndef NDEBUG
-      #define SELFFILE "Bin\\Debug\\EngineD.dll"
-      #define SELFCRCFILE "Bin\\Debug\\EngineD.crc"
-    #else
-      #define SELFFILE "Bin\\Engine.dll"
-      #define SELFCRCFILE "Bin\\Engine.crc"
-    #endif
-    ulCRCActual = GetFileCRC32_t(CTString(SELFFILE));
-    // load expected checksum from the file on disk
-    ulCRCExpected = 0;
-    LoadIntVar(CTString(SELFCRCFILE), ulCRCExpected);
-  } catch (char *strError) {
-    CPrintF("%s\n", strError);
-  }
-  // if not same
-  if (ulCRCActual!=ulCRCExpected) {
-    // don't run
-    //FatalError(TRANS("Engine CRC is invalid.\nExpected %08x, but found %08x.\n"), ulCRCExpected, ulCRCActual);
-  }
-#endif
-
   _pInput->Initialize();
 
   _pGfx->Init();

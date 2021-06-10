@@ -67,7 +67,7 @@
     <IntDir>Debug\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir);$(SolutionDir)..\Tools.Win32\Libraries\DX8SDK\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\Bin\Debug;$(SolutionDir)..\Tools.Win32\Libraries\DX8SDK\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\Bin_1.10\Debug;$(SolutionDir)..\Tools.Win32\Libraries\DX8SDK\Lib;$(LibraryPath)</LibraryPath>
     <TargetExt>.p</TargetExt>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
@@ -121,7 +121,7 @@
       <ModuleDefinitionFile>.\serv.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
-      <Command>copy Release\$(TargetName).p $(SolutionDir)..\Bin\ &gt;nul</Command>
+      <Command>copy Release\$(TargetName).p $(SolutionDir)..\Bin_1.10\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -179,7 +179,7 @@
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <CustomBuildStep>
-      <Command>copy Debug\$(TargetName).p $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
+      <Command>copy Debug\$(TargetName).p $(SolutionDir)..\Bin_1.10\Debug\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>

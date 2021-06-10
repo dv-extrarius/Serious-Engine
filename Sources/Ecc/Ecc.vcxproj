@@ -106,11 +106,11 @@
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <CustomBuildStep>
-      <Command>mkdir $(SolutionDir)..\Bin 2&gt;nul
-mkdir $(SolutionDir)..\Bin\Debug 2&gt;nul
-copy Debug\$(TargetName).exe $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to \Bin\Debug</Message>
-      <Outputs>$(SolutionDir)..\Bin\Debug\$(TargetName).exe;%(Outputs)</Outputs>
+      <Command>mkdir $(SolutionDir)..\Bin_1.10 2&gt;nul
+mkdir $(SolutionDir)..\Bin_1.10\Debug 2&gt;nul
+copy Debug\$(TargetName).exe $(SolutionDir)..\Bin_1.10\Debug\ &gt;nul</Command>
+      <Message>Copying %(Filename) binaries to \Bin_1.10\Debug</Message>
+      <Outputs>$(SolutionDir)..\Bin_1.10\Debug\$(TargetName).exe;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,17 +152,17 @@ copy Debug\$(TargetName).exe $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <CustomBuildStep>
-      <Command>mkdir $(SolutionDir)..\Bin 2&gt;nul
-copy Release\$(TargetName).exe $(SolutionDir)..\Bin\ &gt;nul</Command>
+      <Command>mkdir $(SolutionDir)..\Bin_1.10 2&gt;nul
+copy Release\$(TargetName).exe $(SolutionDir)..\Bin_1.10\ &gt;nul</Command>
       <Message>Copying %(Filename) binaries to \Bin</Message>
-      <Outputs>$(SolutionDir)..\Bin\$(TargetName).exe;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)..\Bin_1.10\$(TargetName).exe;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <CustomBuildStep>
-      <Command>mkdir $(SolutionDir)..\Bin 2&gt;nul
-copy Debug\%(Filename).exe $(SolutionDir)..\Bin\ &gt;nul
-copy Debug\%(Filename).map $(SolutionDir)..\Bin\ &gt;nul</Command>
+      <Command>mkdir $(SolutionDir)..\Bin_1.10 2&gt;nul
+copy Debug\%(Filename).exe $(SolutionDir)..\Bin_1.10\ &gt;nul
+copy Debug\%(Filename).map $(SolutionDir)..\Bin_1.10\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>

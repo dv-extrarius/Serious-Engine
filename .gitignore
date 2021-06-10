@@ -32,7 +32,7 @@
 !Flex.exe
 
 # Output binary dir
-Bin/*
+Bin_1.10/*
 
 # CMake Build dirs (temp)
 Build/
