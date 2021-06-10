@@ -15,11 +15,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef NEW_ENTITY_SELECTION_H
 #define NEW_ENTITY_SELECTION_H
 
-#include <QObject>
-
 #include <set>
 
-class NewEntitySelection : public QObject
+class NewEntitySelection
 {
 public:
   NewEntitySelection();
