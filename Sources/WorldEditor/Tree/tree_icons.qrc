@@ -1,6 +1,6 @@
 <RCC>
-  <qresource prefix="tree_icons">
-    <file>tree_closed.png</file>
-    <file>tree_opened.png</file>
-  </qresource>
+    <qresource prefix="/tree_icons">
+        <file>tree_closed.png</file>
+        <file>tree_opened.png</file>
+    </qresource>
 </RCC>

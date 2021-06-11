@@ -186,11 +186,23 @@ QWidget* PropertyTreeModel::CreateEditor(const QModelIndex& index, QWidget* pare
   } else {
     auto* mixed_editor = new ClickableLabel("(mixed)", parent);
     QObject::connect(mixed_editor, &ClickableLabel::clicked, entity_item,
-      [this, entity_item]
+      [entity_item]
       {
         entity_item->SetFirstValueToAllEntities();
       });
     return mixed_editor;
+  }
+}
+
+void PropertyTreeModel::OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices)
+{
+  for (QModelIndex index : model_indices)
+  {
+    auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
+    auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
+    if (!entity_item)
+      continue;
+    entity_item->OnEntityPicked(picked_entity);
   }
 }
 

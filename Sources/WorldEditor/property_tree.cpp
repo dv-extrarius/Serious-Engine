@@ -64,6 +64,8 @@ public:
     mp_tree_view->setUniformRowHeights(true);
     mp_tree_view->setStyleSheet(tree_stylesheet);
     mp_tree_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    mp_tree_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mp_tree_view->setSelectionMode(QAbstractItemView::SingleSelection);
 
     auto* vertical_layout = new QVBoxLayout(mp_winWidget.get());
     vertical_layout->addWidget(mp_tree_view);
@@ -107,13 +109,19 @@ public:
         mp_tree_view->update();
       });
 
-    QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, mp_winWidget.get(), [this]
+    QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, mp_tree_view, [this]
       (const std::set<CEntity*>& new_selection)
       {
         mp_tree_model->Fill(new_selection);
         mp_winWidget->setEnabled(!new_selection.empty());
         if (!new_selection.empty())
           mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
+      });
+
+    QObject::connect(&EventHub::instance(), &EventHub::EntityPicked, mp_tree_view, [this]
+      (CEntity* picked_entity)
+      {
+        mp_tree_model->OnEntityPicked(picked_entity, mp_tree_view->selectionModel()->selectedIndexes());
       });
   }
 

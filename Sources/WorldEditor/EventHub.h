@@ -28,6 +28,7 @@ public:
 
   Q_SIGNAL void CurrentEntitySelectionChanged(const std::set<CEntity*>&);
   Q_SIGNAL void PropertyChanged(const std::set<CEntity*>&, CPropertyID*);
+  Q_SIGNAL void EntityPicked(CEntity*);
 };
 
 #endif

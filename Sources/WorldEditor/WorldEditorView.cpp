@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "WorldEditor.h"
+#include "EventHub.h"
 #include <Engine/Base/Profiling.h>
 #include <Engine/Base/Statistics.h>
 #include <Engine/Templates/Stock_CTextureData.h>
@@ -2817,6 +2818,7 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
       }
       else
       {
+        EventHub::instance().EntityPicked(crRayHit.cr_penHit);
         // get selected property
         CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
         if( (ppid == NULL) ||

@@ -14,27 +14,39 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 #include "StdAfx.h"
-#include "property_bool.h"
 #include "ui_property_factory.h"
+#include "base_entity_property_tree_item.h"
 
-Property_Bool::Property_Bool(BasePropertyTreeItem* parent)
-  : BaseEntityPropertyTreeItem(parent)
+#include <QCheckBox>
+
+class Property_Bool : public BaseEntityPropertyTreeItem
 {
-}
+public:
+  Property_Bool(BasePropertyTreeItem* parent)
+    : BaseEntityPropertyTreeItem(parent)
+  {
+  }
 
-QWidget* Property_Bool::CreateEditor(QWidget* parent)
-{
-  QObject::disconnect(m_editor_connection);
-  auto* editor = new QCheckBox(parent);
-  editor->setChecked(_CurrentPropValue() == TRUE);
+  QWidget* CreateEditor(QWidget* parent) override
+  {
+    QObject::disconnect(m_editor_connection);
+    auto* editor = new QCheckBox(parent);
+    editor->setChecked(_CurrentPropValue() == TRUE);
 
-  m_editor_connection = QObject::connect(editor, &QCheckBox::clicked, [this]
-    (bool checked)
-    {
-      _WriteProperty(checked ? TRUE : FALSE);
-    });
-  return editor;
-}
+    m_editor_connection = QObject::connect(editor, &QCheckBox::clicked, [this]
+      (bool checked)
+      {
+        _WriteProperty(checked ? TRUE : FALSE);
+      });
+    return editor;
+  }
+
+  IMPL_GENERIC_PROPERTY_FUNCTIONS(BOOL)
+
+private:
+  QMetaObject::Connection m_editor_connection;
+};
+
 
 /*******************************************************************************************/
 static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_BOOL,

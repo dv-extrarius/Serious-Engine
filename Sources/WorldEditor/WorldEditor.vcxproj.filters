@@ -297,6 +297,9 @@
     <ClCompile Include="Tree\base_entity_property_tree_item.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_parent.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
@@ -550,9 +553,6 @@
     <ClInclude Include="Tree\properties_entity_root.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="Tree\property_string.h">
-      <Filter>Header Files\Tree</Filter>
-    </ClInclude>
     <ClInclude Include="property_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -768,9 +768,6 @@
     </CustomBuild>
     <CustomBuild Include="EventHub.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="Tree\property_bool.h">
-      <Filter>Header Files\Tree</Filter>
     </CustomBuild>
     <CustomBuild Include="Tree\base_property_tree_item.h">
       <Filter>Header Files\Tree</Filter>

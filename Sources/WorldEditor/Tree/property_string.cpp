@@ -14,35 +14,45 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 #include "StdAfx.h"
-#include "property_string.h"
 #include "ui_property_factory.h"
+#include "base_entity_property_tree_item.h"
 
 #include <QLineEdit>
 
-Property_String::Property_String(BasePropertyTreeItem* parent)
-  : BaseEntityPropertyTreeItem(parent)
+class Property_String : public BaseEntityPropertyTreeItem
 {
-}
+public:
+  Property_String(BasePropertyTreeItem* parent)
+    : BaseEntityPropertyTreeItem(parent)
+  {
+  }
 
-bool Property_String::_ChangesDocument() const
-{
-  return true;
-}
+  QWidget* CreateEditor(QWidget* parent) override
+  {
+    QObject::disconnect(m_editor_connection);
+    auto* editor = new QLineEdit(parent);
+    editor->setStyleSheet("background-color: transparent;border: 0px;");
+    editor->setText(_CurrentPropValue().str_String);
 
-QWidget* Property_String::CreateEditor(QWidget* parent)
-{
-  QObject::disconnect(m_editor_connection);
-  auto* editor = new QLineEdit(parent);
-  editor->setStyleSheet("background-color: transparent;border: 0px;");
-  editor->setText(_CurrentPropValue().str_String);
+    m_editor_connection = QObject::connect(editor, &QLineEdit::editingFinished, [this, editor]
+      {
+        CTString new_value = editor->text().toLocal8Bit().data();
+        _WriteProperty(new_value);
+      });
+    return editor;
+  }
 
-  m_editor_connection = QObject::connect(editor, &QLineEdit::editingFinished, [this, editor]
-    {
-      CTString new_value = editor->text().toLocal8Bit().data();
-      _WriteProperty(new_value);
-    });
-  return editor;
-}
+  IMPL_GENERIC_PROPERTY_FUNCTIONS(CTString)
+
+protected:
+  bool _ChangesDocument() const override
+  {
+    return true;
+  }
+
+private:
+  QMetaObject::Connection m_editor_connection;
+};
 
 /*******************************************************************************************/
 static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_STRING,
