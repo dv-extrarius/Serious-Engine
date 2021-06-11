@@ -1110,7 +1110,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
 
   // if we have entity mode active, at least one entity selected and edititng property of
   // edit range type, and perspective is not on, render entities using rendering range model
-  CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
   if( (pDoc->GetEditingMode() == ENTITY_MODE) &&
       (pDoc->m_selEntitySelection.Count() != 0) &&
       (ppidProperty != NULL) &&
@@ -2797,7 +2797,7 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
       if( pDoc->m_selEntitySelection.Count() != 0)
       {
         // get selected property
-        CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+        CPropertyID *ppid = pMainFrame->GetSelectedProperty();
         // if property is of range or angle3d type
         if( (ppid != NULL) && (ppid->pid_eptType == CEntityProperty::EPT_RANGE) )
         {
@@ -2818,9 +2818,8 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
       }
       else
       {
-        EventHub::instance().EntityPicked(crRayHit.cr_penHit);
         // get selected property
-        CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+        CPropertyID *ppid = pMainFrame->GetSelectedProperty();
         if( (ppid == NULL) ||
            !((ppid->pid_eptType == CEntityProperty::EPT_ENTITYPTR) ||
              (ppid->pid_eptType == CEntityProperty::EPT_PARENT)) ) return;
@@ -2845,7 +2844,9 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
               for(INDEX iProperty=0; iProperty<pdecDLLClass->dec_ctProperties; iProperty++) {
                 CEntityProperty &epProperty = pdecDLLClass->dec_aepProperties[iProperty];
                 if( (ppid->pid_strName == epProperty.ep_strName) &&
-                    (ppid->pid_eptType == epProperty.ep_eptType) )
+                    (ppid->pid_eptType == epProperty.ep_eptType) &&
+                    iten->IsTargetValid(epProperty.ep_slOffset, crRayHit.cr_penHit)
+                  )
                 {
                   // discard old entity settings
                   iten->End();
@@ -2862,6 +2863,7 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
         pMainFrame->m_PropertyComboBar.UpdateData( FALSE);
         // mark that selections have been changed
         pDoc->m_chSelections.MarkChanged();
+        EventHub::instance().PropertyChanged(pDoc->m_selEntitySelection.Set(), ppid, nullptr);
       }
     }
     // we want to select entities
@@ -3799,7 +3801,7 @@ void CWorldEditorView::CallPopupMenu(CPoint point)
         BOOL bDisableSelectTarget = FALSE;
         if( pDoc->m_selEntitySelection.Count() == 1)
         {
-          CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+          CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
           if( (ppidProperty == NULL) ||
               !((ppidProperty->pid_eptType == CEntityProperty::EPT_PARENT) ||
                 (ppidProperty->pid_eptType == CEntityProperty::EPT_ENTITYPTR)))
@@ -4406,7 +4408,7 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
     case IA_CHANGING_RANGE_PROPERTY:
     case IA_CHANGING_ANGLE3D_PROPERTY:
     {
-      CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppid = pMainFrame->GetSelectedProperty();
       if( ppid == NULL) return;
       //for all selected entities
       for (CEntity* iten : pDoc->m_selEntitySelection)
@@ -4454,6 +4456,8 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
       }
       // mark that document is changed
       pDoc->SetModifiedFlag( TRUE);
+
+      EventHub::instance().PropertyChanged(pDoc->m_selEntitySelection.Set(), ppid, nullptr);
       break;
     }
     case IA_ROTATING_ENTITY_SELECTION:
@@ -5581,6 +5585,10 @@ void CWorldEditorView::RemoveFromLinkedChain(CEntity *pen)
   if( !penCurrent->DropsMarker( fnDropClass, strTargetProperty)) return;
   penpProperty = penCurrent->PropertyForName( strTargetProperty);
   ENTITYPROPERTY( penCurrent, penpProperty->ep_slOffset, CEntityPointer) = penHisTarget;
+
+  CWorldEditorDoc* pDoc = GetDocument();
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ penCurrent }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnDeleteEntities()
@@ -6614,7 +6622,7 @@ BOOL CWorldEditorView::PreTranslateMessage(MSG* pMsg)
     else if( bEntityMode)
     {
       // get property ID
-      CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
       // if we have at least one entity selected and edititng property of edit range type
       // and Ctrl+Shift pressed
       BOOL bEditingProperties = ( (pDoc->m_selEntitySelection.Count() != 0) &&
@@ -7405,16 +7413,22 @@ void CWorldEditorView::OnDropMarker(CPlacement3D plMarker)
     if( !penFirstInChain->DropsMarker( fnDropClass, strTargetProperty)) return;
     penpProperty = penFirstInChain->PropertyForName( strTargetProperty);
     ENTITYPROPERTY( penFirstInChain, penpProperty->ep_slOffset, CEntityPointer) = penSpawned;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penFirstInChain }, &pid, nullptr);
   }
   if( !penSpawned->DropsMarker( fnDropClass, strTargetProperty)) return;
   penpProperty = penSpawned->PropertyForName( strTargetProperty);
   if( penSecondInChain != NULL)
   {
     ENTITYPROPERTY( penSpawned, penpProperty->ep_slOffset, CEntityPointer) = penSecondInChain;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penSpawned }, &pid, nullptr);
   }
   else
   {
     ENTITYPROPERTY( penSpawned, penpProperty->ep_slOffset, CEntityPointer) = penFirstInChain;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penSpawned }, &pid, nullptr);
   }
   // set our only selected entity to point to spawned entity
   if( !enOnly.DropsMarker( fnDropClass, strTargetProperty)) return;
@@ -7424,6 +7438,8 @@ void CWorldEditorView::OnDropMarker(CPlacement3D plMarker)
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnUpdateDropMarker(CCmdUI* pCmdUI)
@@ -7492,6 +7508,9 @@ void CWorldEditorView::OnTestConnections()
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnTestConnectionsBack() 
@@ -7552,6 +7571,9 @@ void CWorldEditorView::OnTestConnectionsBack()
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnUpdateTestConnections(CCmdUI* pCmdUI)
@@ -8878,7 +8900,7 @@ void CWorldEditorView::CenterSelected(void)
 {
   CWorldEditorDoc *pDoc = GetDocument();
   CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
-  CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
   // bounding box of visible sectors
   FLOATaabbox3D boxBoundingBox;
   if( pDoc->GetEditingMode() == ENTITY_MODE && (pDoc->m_selEntitySelection.Count() != 0) )
@@ -9797,7 +9819,7 @@ void CWorldEditorView::OnKeyBackslash()
       CEntity *penOnlySelected = pDoc->m_selEntitySelection.GetFirstInSelection();
 
       CEntity *penToSelect = NULL;
-      CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
       if( ppidProperty == NULL) return;
       if( ppidProperty->pid_eptType == CEntityProperty::EPT_PARENT)
       {

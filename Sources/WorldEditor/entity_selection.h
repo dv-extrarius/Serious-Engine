@@ -33,6 +33,7 @@ public:
   void ConvertToCTContainer(CDynamicContainer<CEntity>& output_container) const;
   void ConvertFromCTSelection(CEntitySelection& input_selection);
   void Notify() const;
+  const std::set<CEntity*>& Set() const;
 
   std::set<CEntity*>::iterator begin();
   std::set<CEntity*>::iterator end();

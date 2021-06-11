@@ -112,6 +112,11 @@ void NewEntitySelection::Notify() const
   EventHub::instance().CurrentEntitySelectionChanged(m_entities);
 }
 
+const std::set<CEntity*>& NewEntitySelection::Set() const
+{
+  return m_entities;
+}
+
 std::set<CEntity*>::iterator NewEntitySelection::begin()
 {
   return m_entities.begin();

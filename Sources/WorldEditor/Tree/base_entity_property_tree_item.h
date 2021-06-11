@@ -57,7 +57,6 @@ public:
   virtual bool     ValueIsCommonForAllEntities() const = 0;
   virtual void     SetFirstValueToAllEntities() = 0;
   virtual QWidget* CreateEditor(QWidget* parent) = 0;
-  virtual void     OnEntityPicked(CEntity* picked_entity);
   bool             EntityPresentInHierarchy(CEntity* entity) const override final;
 
 protected:

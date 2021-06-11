@@ -35,7 +35,7 @@ public:
   void          Clear();
   void          Fill(const std::set<CEntity*>& curr_selection);
   QWidget*      CreateEditor(const QModelIndex& index, QWidget* parent);
-  void          OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices);
+  CPropertyID*  GetSelectedProperty(const QModelIndexList& model_indices) const;
 
   int           rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int           columnCount(const QModelIndex& parent = QModelIndex()) const override;

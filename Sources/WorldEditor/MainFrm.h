@@ -111,6 +111,8 @@ public:
   void ManualToolTipUpdate( void);
   void SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fTime);
 
+	CPropertyID* GetSelectedProperty();
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMainFrame)

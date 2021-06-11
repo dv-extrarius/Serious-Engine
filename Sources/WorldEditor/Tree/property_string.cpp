@@ -29,12 +29,11 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override
   {
-    QObject::disconnect(m_editor_connection);
     auto* editor = new QLineEdit(parent);
     editor->setStyleSheet("background-color: transparent;border: 0px;");
     editor->setText(_CurrentPropValue().str_String);
 
-    m_editor_connection = QObject::connect(editor, &QLineEdit::editingFinished, [this, editor]
+    QObject::connect(editor, &QLineEdit::editingFinished, this, [this, editor]
       {
         CTString new_value = editor->text().toLocal8Bit().data();
         _WriteProperty(new_value);
@@ -49,9 +48,6 @@ protected:
   {
     return true;
   }
-
-private:
-  QMetaObject::Connection m_editor_connection;
 };
 
 /*******************************************************************************************/

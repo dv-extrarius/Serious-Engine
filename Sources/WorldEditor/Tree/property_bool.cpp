@@ -29,11 +29,10 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override
   {
-    QObject::disconnect(m_editor_connection);
     auto* editor = new QCheckBox(parent);
     editor->setChecked(_CurrentPropValue() == TRUE);
 
-    m_editor_connection = QObject::connect(editor, &QCheckBox::clicked, [this]
+    QObject::connect(editor, &QCheckBox::clicked, this, [this]
       (bool checked)
       {
         _WriteProperty(checked ? TRUE : FALSE);
@@ -42,9 +41,6 @@ public:
   }
 
   IMPL_GENERIC_PROPERTY_FUNCTIONS(BOOL)
-
-private:
-  QMetaObject::Connection m_editor_connection;
 };
 
 

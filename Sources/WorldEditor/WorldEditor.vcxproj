@@ -277,6 +277,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\clickable_label.cpp" />
     <ClCompile Include="Tree\properties_entity_root.cpp" />
     <ClCompile Include="Tree\property_bool.cpp" />
+    <ClCompile Include="Tree\property_float.cpp" />
     <ClCompile Include="Tree\property_parent.cpp" />
     <ClCompile Include="Tree\property_pointer.cpp" />
     <ClCompile Include="Tree\property_string.cpp" />

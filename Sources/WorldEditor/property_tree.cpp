@@ -74,6 +74,12 @@ public:
     mp_winWidget->show();
     mp_winWidget->setEnabled(false);
 
+    QObject::connect(mp_tree_view->selectionModel(), &QItemSelectionModel::selectionChanged, mp_tree_view, []
+      {
+        CWorldEditorDoc* pDoc = theApp.GetDocument();
+        pDoc->UpdateAllViews(NULL);
+      });
+
     QObject::connect(mp_tree_model, &PropertyTreeModel::dataChanged, mp_winWidget.get(), [this]
       (const QModelIndex& top_left, const QModelIndex& bottom_right, const QVector<int>&)
       {
@@ -117,17 +123,19 @@ public:
         if (!new_selection.empty())
           mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
       });
-
-    QObject::connect(&EventHub::instance(), &EventHub::EntityPicked, mp_tree_view, [this]
-      (CEntity* picked_entity)
-      {
-        mp_tree_model->OnEntityPicked(picked_entity, mp_tree_view->selectionModel()->selectedIndexes());
-      });
   }
 
   QWinWidget* WinWidget()
   {
     return mp_winWidget.get();
+  }
+
+  CPropertyID* GetSelectedProperty() const
+  {
+    if (!mp_tree_view || !mp_tree_model)
+      return nullptr;
+
+    return mp_tree_model->GetSelectedProperty(mp_tree_view->selectionModel()->selectedIndexes());
   }
 
 private:
@@ -225,4 +233,9 @@ bool PropertyTree_MFC_Host::IsUnderMouse() const
     return false;
 
   return mp_impl->WinWidget()->underMouse();
+}
+
+CPropertyID* PropertyTree_MFC_Host::GetSelectedProperty() const
+{
+  return mp_impl->GetSelectedProperty();
 }

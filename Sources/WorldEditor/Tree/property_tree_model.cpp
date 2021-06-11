@@ -194,17 +194,15 @@ QWidget* PropertyTreeModel::CreateEditor(const QModelIndex& index, QWidget* pare
   }
 }
 
-void PropertyTreeModel::OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices)
+CPropertyID* PropertyTreeModel::GetSelectedProperty(const QModelIndexList& model_indices) const
 {
-  std::set<BaseEntityPropertyTreeItem*> visited_items;
   for (QModelIndex index : model_indices)
   {
     auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
     auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
-    if (!entity_item || visited_items.find(entity_item) != visited_items.end())
+    if (!entity_item)
       continue;
-    visited_items.insert(entity_item);
-    entity_item->OnEntityPicked(picked_entity);
+    return entity_item->mp_property.get();
   }
 }
 

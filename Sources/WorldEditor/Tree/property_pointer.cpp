@@ -62,7 +62,6 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
-    QObject::disconnect(m_editor_connection);
     auto* editor = new QComboBox(parent);
     editor->setStyleSheet(g_combo_style);
 
@@ -73,7 +72,7 @@ public:
     editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     editor->installEventFilter(this);
 
-    m_editor_connection = QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, editor]
+    QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, editor]
       (int index)
       {
         // if (none) selected, drop pointer
@@ -82,20 +81,6 @@ public:
       });
 
     return editor;
-  }
-
-  void OnEntityPicked(CEntity* picked_entity) override final
-  {
-    if (picked_entity && picked_entity->IsTargetable())
-    {
-      for (auto* entity : m_entities)
-      {
-        auto* actual_property = entity->PropertyForName(mp_property->pid_strName);
-        if (!entity->IsTargetValid(actual_property->ep_slOffset, picked_entity))
-          return;
-      }
-      _WriteProperty(picked_entity);
-    }
   }
 
   IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(CEntityPointer, nullptr)
@@ -110,9 +95,6 @@ private:
     }
     return BaseEntityPropertyTreeItem::eventFilter(object, event);
   }
-
-private:
-  QMetaObject::Connection m_editor_connection;
 };
 
 /*******************************************************************************************/

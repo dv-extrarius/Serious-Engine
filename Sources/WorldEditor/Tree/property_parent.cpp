@@ -59,7 +59,6 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
-    QObject::disconnect(m_editor_connection);
     auto* editor = new QComboBox(parent);
     editor->setStyleSheet(g_combo_style);
 
@@ -70,7 +69,7 @@ public:
     editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     editor->installEventFilter(this);
 
-    m_editor_connection = QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, editor]
+    QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, editor]
       (int index)
       {
         // if (none) selected, drop parent
@@ -79,11 +78,6 @@ public:
       });
 
     return editor;
-  }
-
-  void OnEntityPicked(CEntity* picked_entity) override final
-  {
-    _SetParent(picked_entity);
   }
 
   bool ValueIsCommonForAllEntities() const override final
@@ -132,9 +126,6 @@ private:
     }
     return BaseEntityPropertyTreeItem::eventFilter(object, event);
   }
-
-private:
-  QMetaObject::Connection m_editor_connection;
 };
 
 /*******************************************************************************************/

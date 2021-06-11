@@ -28,6 +28,7 @@ public:
   BOOL Create(CWnd* pParentWnd, UINT nIDTemplate, UINT nStyle, UINT nID);
   CSize CalcDynamicLayout(int nLength, DWORD dwMode) override;
   bool IsUnderMouse() const;
+  CPropertyID* GetSelectedProperty() const;
 
 public:
   CSize m_Size;

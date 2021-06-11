@@ -1670,3 +1670,10 @@ void CMainFrame::SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fT
   FLOAT tmNow = _pTimer->GetHighPrecisionTimer().GetSeconds();
   theApp.m_tmStartStatusLineInfo=tmNow + fTime;
 }
+
+CPropertyID* CMainFrame::GetSelectedProperty()
+{
+  auto* prop = m_propertyTree.GetSelectedProperty();
+  if (!prop)
+    return m_PropertyComboBar.GetSelectedProperty();
+}
