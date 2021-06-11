@@ -29,10 +29,10 @@ QComboBox {
 )";
 }
 
-class Property_Parent : public BaseEntityPropertyTreeItem
+class Property_Pointer : public BaseEntityPropertyTreeItem
 {
 public:
-  Property_Parent(BasePropertyTreeItem* parent)
+  Property_Pointer(BasePropertyTreeItem* parent)
     : BaseEntityPropertyTreeItem(parent)
   {
     QObject::connect(&EventHub::instance(), &EventHub::PropertyChanged, this,
@@ -43,13 +43,16 @@ public:
 
         if (prop->pid_eptType == CEntityProperty::EPT_STRING || prop->pid_eptType == CEntityProperty::EPT_STRINGTRANS)
         {
-          std::set<CEntity*> parents;
+          std::set<CEntity*> pointers;
           for (auto* entity : m_entities)
-            parents.insert(entity->GetParent());
+          {
+            CEntityProperty* actual_property = entity->PropertyForName(mp_property->pid_strName);
+            pointers.insert(ENTITYPROPERTY(entity, actual_property->ep_slOffset, CEntityPointer).ep_pen);
+          }
 
           std::vector<CEntity*> common_entities;
           std::set_intersection(entities.begin(), entities.end(),
-            parents.begin(), parents.end(),
+            pointers.begin(), pointers.end(),
             std::back_inserter(common_entities));
           if (!common_entities.empty())
             Changed();
@@ -63,9 +66,9 @@ public:
     auto* editor = new QComboBox(parent);
     editor->setStyleSheet(g_combo_style);
 
-    const CEntity* first_parent = (*m_entities.begin())->GetParent();
-    if (first_parent)
-      editor->addItem(first_parent->GetName().str_String, true);
+    const CEntity* first_ptr = _CurrentPropValue().ep_pen;
+    if (first_ptr)
+      editor->addItem(first_ptr->GetName().str_String, true);
     editor->addItem("(none)", false);
     editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     editor->installEventFilter(this);
@@ -73,9 +76,9 @@ public:
     m_editor_connection = QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, editor]
       (int index)
       {
-        // if (none) selected, drop parent
+        // if (none) selected, drop pointer
         if (index != -1 && !editor->itemData(index).toBool())
-          _SetParent(nullptr);
+          _WriteProperty(nullptr);
       });
 
     return editor;
@@ -83,46 +86,21 @@ public:
 
   void OnEntityPicked(CEntity* picked_entity) override final
   {
-    _SetParent(picked_entity);
+    if (picked_entity && picked_entity->IsTargetable())
+    {
+      for (auto* entity : m_entities)
+      {
+        auto* actual_property = entity->PropertyForName(mp_property->pid_strName);
+        if (!entity->IsTargetValid(actual_property->ep_slOffset, picked_entity))
+          return;
+      }
+      _WriteProperty(picked_entity);
+    }
   }
 
-  bool ValueIsCommonForAllEntities() const override final
-  {
-    const CEntity* first_parent = (*m_entities.begin())->GetParent();
-    auto it = m_entities.begin();
-    for (++it; it != m_entities.end(); ++it)
-      if ((*it)->GetParent() != first_parent)
-        return false;
-    return true;
-  }
-
-  void SetFirstValueToAllEntities() override final
-  {
-    // use nullptr just in case
-    _SetParent(nullptr);
-  }
+  IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(CEntityPointer, nullptr)
 
 private:
-  void _SetParent(CEntity* new_parent)
-  {
-    for (auto* entity : m_entities)
-      entity->SetParent(new_parent);
-
-    CWorldEditorDoc* pDoc = theApp.GetDocument();
-    pDoc->SetModifiedFlag(TRUE);
-    pDoc->UpdateAllViews(NULL);
-
-    auto property_copy = *mp_property;
-    auto entities_copy = m_entities;
-    Changed();
-    EventHub::instance().PropertyChanged(entities_copy, &property_copy, this);
-  }
-
-  QString _GetTypeName() const override final
-  {
-    return "CEntityPointer";
-  }
-
   bool eventFilter(QObject* object, QEvent* event) override
   {
     if (event->type() == QEvent::Wheel)
@@ -138,8 +116,8 @@ private:
 };
 
 /*******************************************************************************************/
-static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_PARENT,
+static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_ENTITYPTR,
   [](BasePropertyTreeItem* parent)
   {
-    return new Property_Parent(parent);
+    return new Property_Pointer(parent);
   });

@@ -196,12 +196,14 @@ QWidget* PropertyTreeModel::CreateEditor(const QModelIndex& index, QWidget* pare
 
 void PropertyTreeModel::OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices)
 {
+  std::set<BaseEntityPropertyTreeItem*> visited_items;
   for (QModelIndex index : model_indices)
   {
     auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
     auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
-    if (!entity_item)
+    if (!entity_item || visited_items.find(entity_item) != visited_items.end())
       continue;
+    visited_items.insert(entity_item);
     entity_item->OnEntityPicked(picked_entity);
   }
 }
@@ -227,7 +229,6 @@ void PropertyTreeModel::_AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item
 
 void PropertyTreeModel::Fill(const std::set<CEntity*>& curr_selection)
 {
-  beginResetModel();
   Clear();
   if (curr_selection.empty())
     return;
@@ -258,6 +259,7 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   int inserted_rows = 0;
 
   auto common_properties = _CollectProperties(entities);
+  std::vector<BaseEntityPropertyTreeItem*> pointer_properties;
 
   for (auto it = common_properties.begin(); it != common_properties.end(); ++it)
   {
@@ -265,6 +267,9 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
     if (UIPropertyFactory::Instance().HasFactoryFor(property->pid_eptType))
     {
       std::unique_ptr<BaseEntityPropertyTreeItem> new_item(UIPropertyFactory::Instance().GetFactoryFor(property->pid_eptType)(parent_item));
+      if (property->pid_eptType == CEntityProperty::EPT_PARENT || property->pid_eptType == CEntityProperty::EPT_ENTITYPTR)
+        pointer_properties.push_back(new_item.get());
+
       new_item->_SetEntitiesAndProperty(entities, std::move(property));
       _AppendItem(std::move(new_item), *parent_item);
       ++inserted_rows;
@@ -274,6 +279,37 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   {
     beginInsertRows(parent, starting_row, starting_row + inserted_rows - 1);
     endInsertRows();
+  }
+
+  for (auto* pointer_prop : pointer_properties)
+  {
+    auto create_prop_subitems = [this, pointer_prop]
+    {
+      QModelIndex prop_index = createIndex(pointer_prop->row(), 0, pointer_prop);
+      if (pointer_prop->childCount() > 0)
+      {
+        beginRemoveRows(prop_index, 0, pointer_prop->childCount() - 1);
+        endRemoveRows();
+        pointer_prop->Clear();
+      }
+
+      CEntity* entity_to_fill = nullptr;
+      if (pointer_prop->mp_property->pid_eptType == CEntityProperty::EPT_PARENT)
+      {
+        entity_to_fill = (*pointer_prop->m_entities.begin())->GetParent();
+      } else {
+        CEntityProperty* actual_property = (*pointer_prop->m_entities.begin())->PropertyForName(pointer_prop->mp_property->pid_strName);
+        if (actual_property)
+          entity_to_fill = ENTITYPROPERTY((*pointer_prop->m_entities.begin()), actual_property->ep_slOffset, CEntityPointer).ep_pen;
+      }
+
+      if (entity_to_fill && !pointer_prop->EntityPresentInHierarchy(entity_to_fill))
+        _FillSubProperties(prop_index, { entity_to_fill });
+    };
+    QObject::connect(pointer_prop, &BasePropertyTreeItem::Changed, create_prop_subitems);
+
+    if (pointer_prop->ValueIsCommonForAllEntities())
+      create_prop_subitems();
   }
 }
 

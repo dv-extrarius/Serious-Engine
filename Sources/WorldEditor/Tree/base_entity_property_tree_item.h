@@ -21,14 +21,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <set>
 
-#define IMPL_GENERIC_PROPERTY_FUNCTIONS(TPropType)\
+#define IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(TPropType, FirstValue)\
 bool ValueIsCommonForAllEntities() const override final\
 {\
   return _ValueIsCommonForAllEntities<TPropType>();\
 }\
 void SetFirstValueToAllEntities() override final\
 {\
-  _WritePropertyT<TPropType>(_CurrentPropValueT<TPropType>());\
+  _WritePropertyT<TPropType>(FirstValue);\
 }\
 protected:\
 QString _GetTypeName() const override final\
@@ -45,6 +45,9 @@ void _WriteProperty(const TPropType& prop_value)\
   _WritePropertyT<TPropType>(prop_value);\
 }
 
+#define IMPL_GENERIC_PROPERTY_FUNCTIONS(TPropType)\
+IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(TPropType, _CurrentPropValueT<TPropType>())
+
 class BaseEntityPropertyTreeItem : public BasePropertyTreeItem
 {
 public:
@@ -55,6 +58,7 @@ public:
   virtual void     SetFirstValueToAllEntities() = 0;
   virtual QWidget* CreateEditor(QWidget* parent) = 0;
   virtual void     OnEntityPicked(CEntity* picked_entity);
+  bool             EntityPresentInHierarchy(CEntity* entity) const override final;
 
 protected:
   virtual QString _GetTypeName() const = 0;
@@ -101,8 +105,10 @@ protected:
     if (_ChangesDocument())
       pDoc->m_chDocument.MarkChanged();
 
+    auto property_copy = *mp_property;
+    auto entities_copy = m_entities;
     Changed();
-    EventHub::instance().PropertyChanged(m_entities, mp_property.get());
+    EventHub::instance().PropertyChanged(entities_copy, &property_copy, this);
   }
 
 private:

@@ -15,7 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef EVENT_HUB_H
 #define EVENT_HUB_H
 
-#include <QObject>
+#include "Tree/base_property_tree_item.h"
+
 #include <vector>
 
 class CEntity;
@@ -27,7 +28,7 @@ public:
   static EventHub& instance();
 
   Q_SIGNAL void CurrentEntitySelectionChanged(const std::set<CEntity*>&);
-  Q_SIGNAL void PropertyChanged(const std::set<CEntity*>&, CPropertyID*);
+  Q_SIGNAL void PropertyChanged(const std::set<CEntity*>&, CPropertyID*, BasePropertyTreeItem*);
   Q_SIGNAL void EntityPicked(CEntity*);
 };
 

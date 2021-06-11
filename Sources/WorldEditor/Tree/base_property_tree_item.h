@@ -31,6 +31,7 @@ public:
     virtual QVariant      data(int column, int role) const = 0;
 
     void                  Clear();
+    virtual bool          EntityPresentInHierarchy(CEntity* entity) const;
 
     void                  appendChild(std::unique_ptr<BasePropertyTreeItem>&& child);
     BasePropertyTreeItem* parentItem();
@@ -44,5 +45,7 @@ private:
     std::vector<std::unique_ptr<BasePropertyTreeItem>> m_childItems;
     BasePropertyTreeItem* m_parentItem;
 };
+
+Q_DECLARE_METATYPE(BasePropertyTreeItem*);
 
 #endif

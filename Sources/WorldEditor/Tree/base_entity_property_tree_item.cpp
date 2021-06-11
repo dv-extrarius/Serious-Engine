@@ -23,8 +23,11 @@ BaseEntityPropertyTreeItem::BaseEntityPropertyTreeItem(BasePropertyTreeItem* par
   : BasePropertyTreeItem(parent)
 {
   QObject::connect(&EventHub::instance(), &EventHub::PropertyChanged, this,
-    [this](const std::set<CEntity*>& entities, CPropertyID* prop)
+    [this](const std::set<CEntity*>& entities, CPropertyID* prop, BasePropertyTreeItem* source)
     {
+      if (source == this)
+        return;
+
       if (prop->pid_eptType == mp_property->pid_eptType)
       {
         std::vector<CEntity*> common_entities;
@@ -51,6 +54,13 @@ QVariant BaseEntityPropertyTreeItem::data(int column, int role) const
 void BaseEntityPropertyTreeItem::OnEntityPicked(CEntity* picked_entity)
 {
   (void)picked_entity;
+}
+
+bool BaseEntityPropertyTreeItem::EntityPresentInHierarchy(CEntity* entity) const
+{
+  if (m_entities.find(entity) != m_entities.end())
+    return true;
+  return BasePropertyTreeItem::EntityPresentInHierarchy(entity);
 }
 
 bool BaseEntityPropertyTreeItem::_ChangesDocument() const

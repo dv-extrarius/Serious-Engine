@@ -52,7 +52,7 @@ private:
   void          _AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item, BasePropertyTreeItem& parent);
 
 private:
-  std::unique_ptr<BasePropertyTreeItem>   mp_header_item;
+  std::unique_ptr<BasePropertyTreeItem> mp_header_item;
 };
 
 #endif
