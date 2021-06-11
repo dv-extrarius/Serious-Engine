@@ -33,7 +33,7 @@ void InitSelectOnRender(PIX pixSizeI, PIX pixSizeJ)
   _pixSizeJ = pixSizeJ;
 
   // if entity selecting not required
-  if (_selenSelectOnRender.m_select_callback && _selenSelectOnRender.m_deselect_callback)
+  if (!_selenSelectOnRender.m_select_callback && !_selenSelectOnRender.m_deselect_callback)
   {
     // if vertex selecting not requred
     if (_pselbvxtSelectOnRender==NULL) {
