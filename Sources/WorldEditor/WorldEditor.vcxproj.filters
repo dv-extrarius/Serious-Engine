@@ -306,6 +306,27 @@
     <ClCompile Include="Tree\property_float.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_enum.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_anim.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_illumination.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_index.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_file.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_color.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\color_widget.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
@@ -781,6 +802,9 @@
     <CustomBuild Include="Tree\clickable_label.h">
       <Filter>Header Files\Tree</Filter>
     </CustomBuild>
+    <CustomBuild Include="Tree\color_widget.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="Tree\property_item_delegate.h.moc">
@@ -796,6 +820,9 @@
       <Filter>Header Files\Tree</Filter>
     </None>
     <None Include="Tree\clickable_label.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\color_widget.h.moc">
       <Filter>Header Files\Tree</Filter>
     </None>
   </ItemGroup>

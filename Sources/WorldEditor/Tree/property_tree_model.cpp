@@ -204,6 +204,7 @@ CPropertyID* PropertyTreeModel::GetSelectedProperty(const QModelIndexList& model
       continue;
     return entity_item->mp_property.get();
   }
+  return nullptr;
 }
 
 void PropertyTreeModel::Clear()

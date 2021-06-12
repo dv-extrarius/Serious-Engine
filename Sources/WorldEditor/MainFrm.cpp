@@ -1018,9 +1018,6 @@ void CMainFrame::ApplyTreeShortcut( INDEX iVDirBuffer, BOOL bCtrl)
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
-  if (m_propertyTree.IsUnderMouse())
-    throw PassMessageToQt{};
-
   BOOL bAltPressed = (GetKeyState( VK_MENU)&0x8000) != 0;
   // alt is pressed
   BOOL bAlt = FALSE;
@@ -1673,7 +1670,7 @@ void CMainFrame::SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fT
 
 CPropertyID* CMainFrame::GetSelectedProperty()
 {
-  auto* prop = m_propertyTree.GetSelectedProperty();
-  if (!prop)
-    return m_PropertyComboBar.GetSelectedProperty();
+  if (auto* prop = m_propertyTree.GetSelectedProperty())
+    return prop;
+  return m_PropertyComboBar.GetSelectedProperty();
 }

@@ -17,8 +17,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <memory>
 
-class PassMessageToQt {};
-
 class PropertyTree_MFC_Host : public CDialogBar
 {
 public:

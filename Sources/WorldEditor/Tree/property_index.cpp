@@ -17,47 +17,47 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ui_property_factory.h"
 #include "base_entity_property_tree_item.h"
 
-#include <QLineEdit>
+#include <QSpinBox>
 
-class Property_String : public BaseEntityPropertyTreeItem
+namespace
+{
+  const char* g_spin_style = R"(
+QSpinBox {
+  background-color: transparent;
+  border: 0px;
+}
+)";
+}
+
+class Property_Index : public BaseEntityPropertyTreeItem
 {
 public:
-  Property_String(BasePropertyTreeItem* parent)
+  Property_Index(BasePropertyTreeItem* parent)
     : BaseEntityPropertyTreeItem(parent)
   {
   }
 
   QWidget* CreateEditor(QWidget* parent) override
   {
-    auto* editor = new QLineEdit(parent);
-    editor->setStyleSheet("background-color: transparent;border: 0px;");
-    editor->setText(QString::fromLocal8Bit(_CurrentPropValue().str_String));
+    auto* editor = new QSpinBox(parent);
+    editor->setStyleSheet(g_spin_style);
+    editor->setRange(-99999999, 99999999);
+    editor->setValue(_CurrentPropValue());
 
-    QObject::connect(editor, &QLineEdit::editingFinished, this, [this, editor]
+    QObject::connect(editor, &QDoubleSpinBox::editingFinished, this, [this, editor]
       {
-        CTString new_value = editor->text().toLocal8Bit().data();
-        _WriteProperty(new_value);
+        _WriteProperty(editor->value());
       });
+
     return editor;
   }
 
-  IMPL_GENERIC_PROPERTY_FUNCTIONS(CTString)
-
-protected:
-  bool _ChangesDocument() const override
-  {
-    return true;
-  }
+  IMPL_GENERIC_PROPERTY_FUNCTIONS(INDEX)
 };
 
 /*******************************************************************************************/
-static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_STRING,
+static UIPropertyFactory::Registrar g_registrar(CEntityProperty::PropertyType::EPT_INDEX,
   [](BasePropertyTreeItem* parent)
   {
-    return new Property_String(parent);
-  });
-static UIPropertyFactory::Registrar g_registrar_translatable(CEntityProperty::PropertyType::EPT_STRINGTRANS,
-  [](BasePropertyTreeItem* parent)
-  {
-    return new Property_String(parent);
+    return new Property_Index(parent);
   });

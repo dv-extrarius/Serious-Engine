@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <Engine/Templates/Stock_CModelData.h>
 
+#include <QtWin>
+#include <QIcon>
 #include <QMessageBox>
 
 #include <sys/stat.h>
@@ -420,12 +422,21 @@ CWorldEditorView* CWorldEditorApp::GetActiveView(void)
 
 CWorldEditorApp theApp;
 
+CWorldEditorApp::ModalGuard::ModalGuard()
+{
+  theApp.m_showing_modal_dialog = true;
+}
+
+CWorldEditorApp::ModalGuard::~ModalGuard()
+{
+  theApp.m_showing_modal_dialog = false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CWorldEditorApp initialization
 
 BOOL CWorldEditorApp::InitInstance()
 {
-  QMfcApp::instance(this);
   _CrtSetBreakAlloc(55);
   BOOL bResult;
   CTSTREAM_BEGIN {
@@ -533,6 +544,11 @@ void CWorldEditorApp::MyParseCommandLine(void)
 
 BOOL CWorldEditorApp::SubInitInstance()
 {
+  HICON app_icon = (HICON)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+  QMfcApp::instance(this)->setWindowIcon(QIcon(QtWin::fromHICON(app_icon)));
+  ::DestroyIcon(app_icon);
+
+  m_showing_modal_dialog = false;
   // required for visual styles
   InitCommonControls();
 
@@ -928,6 +944,7 @@ void CWorldEditorApp::OnAppAbout()
 
 void CWorldEditorApp::OnQtAbout()
 {
+  CWorldEditorApp::ModalGuard guard;
   QWinWidget modal_widget(m_pMainWnd->GetSafeHwnd(), nullptr, Qt::WindowFlags{});
   QMessageBox::aboutQt(&modal_widget, "About Qt");
 }
@@ -2088,6 +2105,9 @@ void CWorldEditorApp::OnFilePreferences()
 
 BOOL CWorldEditorApp::OnIdle(LONG lCount)
 {
+  if (m_showing_modal_dialog)
+    return CWinApp::OnIdle(lCount);
+
   // if game is on
   if( _pInput->IsInputEnabled())
   {
@@ -2706,14 +2726,11 @@ int CWorldEditorApp::Run()
 
 BOOL CWorldEditorApp::PreTranslateMessage(MSG* pMsg)
 {
-  try
-  {
-    return CWinApp::PreTranslateMessage(pMsg);
-  }
-  catch (const PassMessageToQt&)
-  {
+  CMainFrame* main_frame = static_cast<CMainFrame*>(m_pMainWnd);
+  if (m_showing_modal_dialog || (main_frame && main_frame->m_propertyTree.IsUnderMouse()))
     return FALSE;
-  }
+
+  return CWinApp::PreTranslateMessage(pMsg);
 }
 
 CTString CWorldEditorApp::GetNameForVirtualTreeNode( CVirtualTreeNode *pvtnNode)

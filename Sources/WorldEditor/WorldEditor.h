@@ -322,6 +322,7 @@ class CWorldEditorApp : public CWinApp
 {
 private:
   CWorldEditorDoc *m_pLastActivatedDocument;
+  bool m_showing_modal_dialog;
 public:
 // Atributes
   FLOAT3D m_vLastTerrainHit;
@@ -495,6 +496,12 @@ public:
 
   CChangeableRT m_ctTerrainPage;
   CChangeableRT m_ctTerrainPageCanvas;
+
+  struct ModalGuard
+  {
+    ModalGuard();
+    ~ModalGuard();
+  };
 
 // Operations
   CWorldEditorApp();
