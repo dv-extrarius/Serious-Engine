@@ -483,10 +483,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   // We will set default width and height of browser and property dialog bars
 	SET_BAR_SIZE(m_Browser, STD_BROWSER_WIDTH, STD_BROWSER_HEIGHT);
 	SET_BAR_SIZE(m_PropertyComboBar, STD_PROPERTYCOMBO_WIDTH, STD_PROPERTYCOMBO_HEIGHT);
-/*
-  ::SetWindowPos(m_propertyTree.GetSafeHwnd(), 0, 0, 0, STD_PROPERTYTREE_WIDTH, STD_PROPERTYTREE_HEIGHT,
-    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOREPOSITION | SWP_NOZORDER);
-    */
+
   DockControlBar(&m_wndToolBar);
 	DockControlBar(&m_wndWorkTools);
   DockControlBar(&m_wndProjections);
@@ -1670,7 +1667,8 @@ void CMainFrame::SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fT
 
 CPropertyID* CMainFrame::GetSelectedProperty()
 {
-  if (auto* prop = m_propertyTree.GetSelectedProperty())
-    return prop;
+  if (m_propertyTree.GetStyle() & WS_VISIBLE)
+    if (auto* prop = m_propertyTree.GetSelectedProperty())
+      return prop;
   return m_PropertyComboBar.GetSelectedProperty();
 }

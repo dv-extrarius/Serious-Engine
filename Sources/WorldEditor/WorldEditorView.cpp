@@ -2826,8 +2826,46 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
            !((ppid->pid_eptType == CEntityProperty::EPT_ENTITYPTR) ||
              (ppid->pid_eptType == CEntityProperty::EPT_PARENT)) ) return;
 
+        if (!(pMainFrame && pMainFrame->m_propertyTree.GetStyle() & WS_VISIBLE))
+        {
+          BOOL bParentProperty = ppid->pid_eptType == CEntityProperty::EPT_PARENT;
+          // for each of the selected entities
+          for (CEntity* iten : pDoc->m_selEntitySelection)
+          {
+            if (bParentProperty)
+            {
+              iten->SetParent(crRayHit.cr_penHit);
+            }
+            else if (crRayHit.cr_penHit->IsTargetable())
+            {
+              // obtain entity class ptr
+              CDLLEntityClass* pdecDLLClass = iten->GetClass()->ec_pdecDLLClass;
+              // for all classes in hierarchy of this entity
+              for (;
+                pdecDLLClass != NULL;
+                pdecDLLClass = pdecDLLClass->dec_pdecBase) {
+                // for all properties
+                for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++) {
+                  CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
+                  if ((ppid->pid_strName == epProperty.ep_strName) &&
+                    (ppid->pid_eptType == epProperty.ep_eptType) &&
+                    iten->IsTargetValid(epProperty.ep_slOffset, crRayHit.cr_penHit)
+                    )
+                  {
+                    // discard old entity settings
+                    iten->End();
+                    // set clicked entity as one that selected entity points to
+                    ENTITYPROPERTY(&*iten, epProperty.ep_slOffset, CEntityPointer) = crRayHit.cr_penHit;
+                    // apply new entity settings
+                    iten->Initialize();
+                  }
+                }
+              }
+            }
+          }
+        }
         // update edit range control (by updating parent dialog)
-        pMainFrame->m_PropertyComboBar.UpdateData( FALSE);
+        pMainFrame->m_PropertyComboBar.UpdateData(FALSE);
         // mark that selections have been changed
         pDoc->m_chSelections.MarkChanged();
       }
