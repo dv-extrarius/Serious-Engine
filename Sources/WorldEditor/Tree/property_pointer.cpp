@@ -71,21 +71,35 @@ public:
           editor);
       });
 
+    QObject::connect(editor, &PointerWidget::selectFromList, this, [this]
+      {
+        CDlgBrowseByClass select_entity_dialog(nullptr, true, [this](CEntity* entity) { return _CanTarget(entity); });
+        if (select_entity_dialog.DoModal() == IDOK && select_entity_dialog.m_selected_entity)
+          _WriteProperty(select_entity_dialog.m_selected_entity);
+      });
+
     return editor;
   }
 
-  void OnEntityPicked(CEntity* picked_entity) override final
+  bool _CanTarget(CEntity* target_entity) const
   {
-    if (picked_entity && picked_entity->IsTargetable())
+    if (target_entity && target_entity->IsTargetable())
     {
       for (auto* entity : m_entities)
       {
         auto* actual_property = entity->PropertyForName(mp_property->pid_strName);
-        if (!entity->IsTargetValid(actual_property->ep_slOffset, picked_entity))
-          return;
+        if (!entity->IsTargetValid(actual_property->ep_slOffset, target_entity))
+          return false;
       }
-      _WriteProperty(picked_entity);
+      return true;
     }
+    return false;
+  }
+
+  void OnEntityPicked(CEntity* picked_entity) override final
+  {
+    if (_CanTarget(picked_entity))
+      _WriteProperty(picked_entity);
   }
 
   IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(CEntityPointer, nullptr)

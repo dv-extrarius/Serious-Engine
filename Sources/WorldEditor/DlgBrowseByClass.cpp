@@ -393,8 +393,11 @@ int CALLBACK SortEntities(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
   if( theApp.m_bInvertClassSort) return -iResult; else return iResult;
 }
 
-CDlgBrowseByClass::CDlgBrowseByClass(CWnd* pParent /*=NULL*/)
+CDlgBrowseByClass::CDlgBrowseByClass(CWnd* pParent /*=NULL*/, bool for_picking, std::function<bool(CEntity*)>&& filter)
 	: CDialog(CDlgBrowseByClass::IDD, pParent)
+  , m_for_picking(for_picking)
+  , m_filter(std::move(filter))
+  , m_selected_entity(nullptr)
 {
 	//{{AFX_DATA_INIT(CDlgBrowseByClass)
 	m_strEntitiesInVolume = _T("");
@@ -441,7 +444,10 @@ void CDlgBrowseByClass::DoDataExchange(CDataExchange* pDX)
   if( pDX->m_bSaveAndValidate != FALSE)
   {
     // clear document selection
-    pDoc->m_selEntitySelection.Clear();
+    if (!m_for_picking)
+      pDoc->m_selEntitySelection.Clear();
+    else
+      m_selected_entity = nullptr;
     // mark all selected entities in list as selected in document's entity selection
     INDEX iSelectedItem = -1;
     FOREVER
@@ -454,7 +460,10 @@ void CDlgBrowseByClass::DoDataExchange(CDataExchange* pDX)
       // get selected entity
       CEntity *penEntity = (CEntity *) m_listEntities.GetItemData(iSelectedItem);
       // add entity into normal selection
-      pDoc->m_selEntitySelection.Select( *penEntity);
+      if (!m_for_picking)
+        pDoc->m_selEntitySelection.Select(*penEntity);
+      else
+        m_selected_entity = penEntity;
     }
     if( pDoc->m_bBrowseEntitiesMode)
     {
@@ -576,7 +585,8 @@ void CDlgBrowseByClass::FillListWithEntities(void)
     CBrushSector *pbscSector = iten->GetFirstSector();
     if(!(iten->en_ulFlags&ENF_HIDDEN) &&
         ((pbscSector == NULL) || !(pbscSector->bsc_ulFlags & BSCF_HIDDEN)) &&
-        (!m_bShowImportants || iten->IsImportant()))
+        (!m_bShowImportants || iten->IsImportant()) &&
+        (!m_filter || m_filter(iten)))
     {
       AddEntity( &iten.Current());
     }
@@ -722,7 +732,16 @@ BOOL CDlgBrowseByClass::OnInitDialog()
   MOVE_BUTTON( ID_SELECT_SECTORS, 3);
   MOVE_BUTTON( IDOK, 2);
   MOVE_BUTTON( IDCANCEL, 1);
+  if (m_for_picking)
+  {
+    GetDlgItem(ID_DELETE_BROWSE_BY_CLASS)->EnableWindow(FALSE);
+    GetDlgItem(ID_FEED_VOLUME)->EnableWindow(FALSE);
+    GetDlgItem(ID_SELECT_SECTORS)->EnableWindow(FALSE);
+    GetDlgItem(IDC_PLUGGINS)->EnableWindow(FALSE);
+    GetDlgItem(IDC_DISPLAY_VOLUME)->EnableWindow(FALSE);
 
+    m_listEntities.ModifyStyle(0, LVS_SINGLESEL, 0);
+  }
   FillListWithEntities();
   InitializePluggins();
 	return TRUE;

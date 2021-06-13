@@ -68,6 +68,13 @@ public:
           editor);
       });
 
+    QObject::connect(editor, &PointerWidget::selectFromList, this, [this]
+      {
+        CDlgBrowseByClass select_entity_dialog(nullptr, true, [this](CEntity* entity) { return m_entities.find(entity) == m_entities.end(); });
+        if (select_entity_dialog.DoModal() == IDOK && select_entity_dialog.m_selected_entity)
+          _SetParent(select_entity_dialog.m_selected_entity);
+      });
+
     return editor;
   }
 
