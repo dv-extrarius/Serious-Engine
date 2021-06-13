@@ -5,5 +5,6 @@
         <file>cross.png</file>
         <file>list_entities.png</file>
         <file>pick_entity.png</file>
+        <file>locate.png</file>
     </qresource>
 </RCC>

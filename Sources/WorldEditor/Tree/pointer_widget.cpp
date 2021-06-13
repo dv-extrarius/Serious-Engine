@@ -68,6 +68,24 @@ PointerWidget::PointerWidget(CEntity* entity, QWidget* parent)
     label->setText(QString("%1 (ID %2)").arg(QString::fromLocal8Bit(entity->GetName().str_String)).arg(QString::number(entity->en_ulID)));
   layout->addWidget(label);
 
+  if (entity)
+  {
+    auto* btn_locate = new QPushButton(QIcon(":/tree_icons/locate.png"), "", this);
+    btn_locate->setStyleSheet(g_button_style);
+    btn_locate->setFixedSize(12, 15);
+    QObject::connect(btn_locate, &QPushButton::clicked, this, [this, entity]
+      {
+        CWorldEditorDoc* pDoc = theApp.GetActiveDocument();
+        if (!pDoc)
+          return;
+        POSITION pos = pDoc->GetFirstViewPosition();
+        CWorldEditorView* pWedView = (CWorldEditorView*)pDoc->GetNextView(pos);
+        if (pWedView)
+          pWedView->OnCenterEntity(entity);
+      });
+    layout->addWidget(btn_locate);
+  }
+
   auto* btn_pick = new QPushButton(QIcon(":/tree_icons/pick_entity.png"), "", this);
   btn_pick->setStyleSheet(g_button_style);
   btn_pick->setFixedSize(12, 15);

@@ -7347,6 +7347,18 @@ void CWorldEditorView::OnCenterEntity()
   pDoc->UpdateAllViews( NULL);
 }
 
+void CWorldEditorView::OnCenterEntity(CEntity* entity)
+{
+  if (!entity)
+    return;
+
+  CWorldEditorDoc* pDoc = GetDocument();
+
+  CPlacement3D plEntityPlacement = entity->GetPlacement();
+  GetChildFrame()->m_mvViewer.SetTargetPlacement(plEntityPlacement.pl_PositionVector);
+  pDoc->UpdateAllViews(NULL);
+}
+
 void CWorldEditorView::OnUpdateCenterEntity(CCmdUI* pCmdUI)
 {
 	CWorldEditorDoc* pDoc = GetDocument();
