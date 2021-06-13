@@ -207,6 +207,18 @@ CPropertyID* PropertyTreeModel::GetSelectedProperty(const QModelIndexList& model
   return nullptr;
 }
 
+void PropertyTreeModel::OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices)
+{
+  for (QModelIndex index : model_indices)
+  {
+    auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
+    auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
+    if (!entity_item)
+      continue;
+    entity_item->OnEntityPicked(picked_entity);
+  }
+}
+
 void PropertyTreeModel::Clear()
 {
   beginResetModel();

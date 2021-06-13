@@ -51,6 +51,11 @@ QVariant BaseEntityPropertyTreeItem::data(int column, int role) const
   return _GetTypeName();
 }
 
+void BaseEntityPropertyTreeItem::OnEntityPicked(CEntity* picked_entity)
+{
+  (void)picked_entity;
+}
+
 bool BaseEntityPropertyTreeItem::EntityPresentInHierarchy(CEntity* entity) const
 {
   if (m_entities.find(entity) != m_entities.end())

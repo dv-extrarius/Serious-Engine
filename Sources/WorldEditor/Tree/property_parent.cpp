@@ -80,6 +80,11 @@ public:
     return editor;
   }
 
+  void OnEntityPicked(CEntity* picked_entity) override final
+  {
+    _SetParent(picked_entity);
+  }
+
   bool ValueIsCommonForAllEntities() const override final
   {
     const CEntity* first_parent = (*m_entities.begin())->GetParent();

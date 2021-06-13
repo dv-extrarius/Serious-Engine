@@ -123,6 +123,12 @@ public:
         if (!new_selection.empty())
           mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
       });
+
+    QObject::connect(&EventHub::instance(), &EventHub::EntityPicked, mp_tree_view, [this]
+      (CEntity* picked_entity)
+      {
+        mp_tree_model->OnEntityPicked(picked_entity, mp_tree_view->selectionModel()->selectedIndexes());
+      });
   }
 
   QWinWidget* WinWidget()

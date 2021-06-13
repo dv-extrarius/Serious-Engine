@@ -83,6 +83,20 @@ public:
     return editor;
   }
 
+  void OnEntityPicked(CEntity* picked_entity) override final
+  {
+    if (picked_entity && picked_entity->IsTargetable())
+    {
+      for (auto* entity : m_entities)
+      {
+        auto* actual_property = entity->PropertyForName(mp_property->pid_strName);
+        if (!entity->IsTargetValid(actual_property->ep_slOffset, picked_entity))
+          return;
+      }
+      _WriteProperty(picked_entity);
+    }
+  }
+
   IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(CEntityPointer, nullptr)
 
 private:
