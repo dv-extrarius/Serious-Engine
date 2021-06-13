@@ -142,6 +142,20 @@ namespace
       return "Type";
     }
   };
+
+  class _DummyTreeItem : public BasePropertyTreeItem
+  {
+  public:
+    explicit _DummyTreeItem(BasePropertyTreeItem* parent)
+      : BasePropertyTreeItem(parent)
+    {
+    }
+
+    QVariant data(int, int) const override
+    {
+      return QVariant();
+    }
+  };
 } // anonymous namespace
 
 
@@ -219,6 +233,17 @@ void PropertyTreeModel::OnEntityPicked(CEntity* picked_entity, const QModelIndex
   }
 }
 
+void PropertyTreeModel::EnsureSubtreeIsFilled(const QModelIndex& index)
+{
+  auto* item = static_cast<BasePropertyTreeItem*>(index.internalPointer());
+  auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
+  if (!entity_item)
+    return;
+
+  if (dynamic_cast<_DummyTreeItem*>(entity_item->child(0)))
+    _FillSubTree(entity_item);
+}
+
 void PropertyTreeModel::Clear()
 {
   beginResetModel();
@@ -294,34 +319,49 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
 
   for (auto* pointer_prop : pointer_properties)
   {
-    auto create_prop_subitems = [this, pointer_prop]
+    QObject::connect(pointer_prop, &BasePropertyTreeItem::Changed, [this, pointer_prop]
+      {
+        if (!dynamic_cast<_DummyTreeItem*>(pointer_prop->child(0)))
+          _FillSubTree(pointer_prop);
+      });
+
+    if (pointer_prop->ValueIsCommonForAllEntities() && _GetPointerEntity(pointer_prop))
     {
-      QModelIndex prop_index = createIndex(pointer_prop->row(), 0, pointer_prop);
-      if (pointer_prop->childCount() > 0)
-      {
-        beginRemoveRows(prop_index, 0, pointer_prop->childCount() - 1);
-        endRemoveRows();
-        pointer_prop->Clear();
-      }
-
-      CEntity* entity_to_fill = nullptr;
-      if (pointer_prop->mp_property->pid_eptType == CEntityProperty::EPT_PARENT)
-      {
-        entity_to_fill = (*pointer_prop->m_entities.begin())->GetParent();
-      } else {
-        CEntityProperty* actual_property = (*pointer_prop->m_entities.begin())->PropertyForName(pointer_prop->mp_property->pid_strName);
-        if (actual_property)
-          entity_to_fill = ENTITYPROPERTY((*pointer_prop->m_entities.begin()), actual_property->ep_slOffset, CEntityPointer).ep_pen;
-      }
-
-      if (entity_to_fill && !pointer_prop->EntityPresentInHierarchy(entity_to_fill))
-        _FillSubProperties(prop_index, { entity_to_fill });
-    };
-    QObject::connect(pointer_prop, &BasePropertyTreeItem::Changed, create_prop_subitems);
-
-    if (pointer_prop->ValueIsCommonForAllEntities())
-      create_prop_subitems();
+      pointer_prop->appendChild(std::make_unique<_DummyTreeItem>(pointer_prop));
+      beginInsertRows(createIndex(pointer_prop->row(), 0, pointer_prop), 0, 1);
+      endInsertRows();
+    }
   }
+}
+
+CEntity* PropertyTreeModel::_GetPointerEntity(BaseEntityPropertyTreeItem* entity_item) const
+{
+  CEntity* pointed_entity = nullptr;
+  if (entity_item->mp_property->pid_eptType == CEntityProperty::EPT_PARENT)
+  {
+    pointed_entity = (*entity_item->m_entities.begin())->GetParent();
+  }
+  else {
+    CEntityProperty* actual_property = (*entity_item->m_entities.begin())->PropertyForName(entity_item->mp_property->pid_strName);
+    if (actual_property)
+      pointed_entity = ENTITYPROPERTY((*entity_item->m_entities.begin()), actual_property->ep_slOffset, CEntityPointer).ep_pen;
+  }
+  return pointed_entity;
+}
+
+void PropertyTreeModel::_FillSubTree(BaseEntityPropertyTreeItem* entity_item)
+{
+  QModelIndex prop_index = createIndex(entity_item->row(), 0, entity_item);
+  if (entity_item->childCount() > 0)
+  {
+    beginRemoveRows(prop_index, 0, entity_item->childCount() - 1);
+    endRemoveRows();
+    entity_item->Clear();
+  }
+
+  CEntity* entity_to_fill = _GetPointerEntity(entity_item);
+  if (entity_to_fill && !entity_item->EntityPresentInHierarchy(entity_to_fill))
+    _FillSubProperties(prop_index, { entity_to_fill });
 }
 
 QVariant PropertyTreeModel::data(const QModelIndex& index, int role) const

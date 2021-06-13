@@ -124,6 +124,12 @@ public:
           mp_tree_view->setExpanded(mp_tree_model->index(0, 0), true);
       });
 
+    QObject::connect(mp_tree_view, &QTreeView::expanded, mp_tree_model, [this]
+      (const QModelIndex& index)
+      {
+        mp_tree_model->EnsureSubtreeIsFilled(index);
+      });
+
     QObject::connect(&EventHub::instance(), &EventHub::EntityPicked, mp_tree_view, [this]
       (CEntity* picked_entity)
       {

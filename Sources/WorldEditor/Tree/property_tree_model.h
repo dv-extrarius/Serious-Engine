@@ -24,6 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 class CEntity;
 class BasePropertyTreeItem;
+class BaseEntityPropertyTreeItem;
 
 class PropertyTreeModel : public QAbstractItemModel
 {
@@ -37,6 +38,7 @@ public:
   QWidget*      CreateEditor(const QModelIndex& index, QWidget* parent);
   CPropertyID*  GetSelectedProperty(const QModelIndexList& model_indices) const;
   void          OnEntityPicked(CEntity* picked_entity, const QModelIndexList& model_indices);
+  void          EnsureSubtreeIsFilled(const QModelIndex& index);
 
   int           rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int           columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -51,6 +53,8 @@ private:
   void          _AddEntityProperties(const QModelIndex& parent, const std::set<CEntity*>& entities);
   void          _FillSubProperties(const QModelIndex& parent, const std::set<CEntity*>& entities);
   void          _AppendItem(std::unique_ptr<BasePropertyTreeItem>&& item, BasePropertyTreeItem& parent);
+  void          _FillSubTree(BaseEntityPropertyTreeItem* entity_item);
+  CEntity*      _GetPointerEntity(BaseEntityPropertyTreeItem* entity_item) const;
 
 private:
   std::unique_ptr<BasePropertyTreeItem> mp_header_item;
