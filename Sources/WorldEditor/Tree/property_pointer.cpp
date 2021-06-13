@@ -16,18 +16,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdAfx.h"
 #include "ui_property_factory.h"
 #include "base_entity_property_tree_item.h"
+#include "pointer_widget.h"
 
-#include <QComboBox>
-
-namespace
-{
-  const char* g_combo_style = R"(
-QComboBox {
-  background-color: transparent;
-  border: 0px;
-}
-)";
-}
+#include <QPointer>
 
 class Property_Pointer : public BaseEntityPropertyTreeItem
 {
@@ -62,22 +53,22 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
-    auto* editor = new QComboBox(parent);
-    editor->setStyleSheet(g_combo_style);
-
-    const CEntity* first_ptr = _CurrentPropValue().ep_pen;
-    if (first_ptr)
-      editor->addItem(first_ptr->GetName().str_String, true);
-    editor->addItem("(none)", false);
-    editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
-    editor->installEventFilter(this);
-
-    QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, editor]
-      (int index)
+    auto* editor = new PointerWidget(_CurrentPropValue().ep_pen, parent);
+    
+    QObject::connect(editor, &PointerWidget::clear, this, [this]
       {
-        // if (none) selected, drop pointer
-        if (index != -1 && !editor->itemData(index).toBool())
-          _WriteProperty(nullptr);
+        _WriteProperty(nullptr);
+      });
+
+    QObject::connect(editor, &PointerWidget::pick, this, [this, pthis = this, editor]
+      {
+        theApp.InstallOneTimeSelectionStealer([qthis = QPointer(pthis)]
+          (CEntity* entity)
+          {
+            if (qthis)
+              qthis->OnEntityPicked(entity);
+          },
+          editor);
       });
 
     return editor;
@@ -98,17 +89,6 @@ public:
   }
 
   IMPL_GENERIC_PROPERTY_FUNCTIONS_IMPL(CEntityPointer, nullptr)
-
-private:
-  bool eventFilter(QObject* object, QEvent* event) override
-  {
-    if (event->type() == QEvent::Wheel)
-    {
-      event->ignore();
-      return true;
-    }
-    return BaseEntityPropertyTreeItem::eventFilter(object, event);
-  }
 };
 
 /*******************************************************************************************/

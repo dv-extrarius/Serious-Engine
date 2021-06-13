@@ -321,8 +321,7 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   {
     QObject::connect(pointer_prop, &BasePropertyTreeItem::Changed, [this, pointer_prop]
       {
-        if (!dynamic_cast<_DummyTreeItem*>(pointer_prop->child(0)))
-          _FillSubTree(pointer_prop);
+        _FillSubTree(pointer_prop);
       });
 
     if (pointer_prop->ValueIsCommonForAllEntities() && _GetPointerEntity(pointer_prop))

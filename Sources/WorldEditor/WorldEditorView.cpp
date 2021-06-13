@@ -3308,12 +3308,20 @@ void CWorldEditorView::OnLButtonUp(UINT nFlags, CPoint point)
           BOOL bWasSelected = crRayHit.cr_penHit->IsSelected( ENF_SELECTED);
           // deselect all selected entities
           INDEX ctSelectedBefore = pDoc->m_selEntitySelection.Count();
-          pDoc->m_selEntitySelection.Clear();
-          // if entity was not selected before
-          if( !((ctSelectedBefore == 1) && bWasSelected))
+
+          const auto& selection_stealer = theApp.GetSelectionStealer();
+          if (selection_stealer)
           {
-            // select it
-            pDoc->m_selEntitySelection.Select( *crRayHit.cr_penHit);
+            selection_stealer(crRayHit.cr_penHit);
+            theApp.InstallOneTimeSelectionStealer(nullptr, nullptr);
+          } else {
+            pDoc->m_selEntitySelection.Clear();
+            // if entity was not selected before
+            if (!((ctSelectedBefore == 1) && bWasSelected))
+            {
+              // select it
+              pDoc->m_selEntitySelection.Select(*crRayHit.cr_penHit);
+            }
           }
         }
         else

@@ -59,13 +59,18 @@ QVariant EntityRootProperties::data(int column, int role) const
   else if (column == 1)
   {
     auto it = m_entities.begin();
-    common_value = (*it)->GetName();
-    for (++it; it != m_entities.end(); ++it)
+    if (m_entities.size() == 1)
     {
-      if (common_value != (*it)->GetName())
+      common_value = QString("%1 (ID %2)").arg(QString::fromLocal8Bit((*it)->GetName().str_String)).arg(QString::number((*it)->en_ulID));
+    } else {
+      common_value = QString::fromLocal8Bit((*it)->GetName().str_String);
+      for (++it; it != m_entities.end(); ++it)
       {
-        common_value = "(mixed names)";
-        break;
+        if (common_value != QString::fromLocal8Bit((*it)->GetName().str_String))
+        {
+          common_value = "(mixed names)";
+          break;
+        }
       }
     }
   }

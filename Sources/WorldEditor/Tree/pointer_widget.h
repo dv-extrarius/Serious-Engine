@@ -12,25 +12,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
-#ifndef EVENT_HUB_H
-#define EVENT_HUB_H
+#ifndef POINTER_WIDGET_H
+#define POINTER_WIDGET_H
 
-#include "Tree/base_property_tree_item.h"
-
-#include <vector>
+#include <QWidget>
 
 class CEntity;
 
-class EventHub : public QObject
+class PointerWidget : public QWidget
 {
   Q_OBJECT
 public:
-  static EventHub& instance();
+  PointerWidget(CEntity* entity, QWidget* parent);
 
-  Q_SIGNAL void CurrentEntitySelectionChanged(const std::set<CEntity*>&);
-  Q_SIGNAL void PropertyChanged(const std::set<CEntity*>&, CPropertyID*, BasePropertyTreeItem*);
-  Q_SIGNAL void EntityPicked(CEntity*);
-  Q_SIGNAL void SelectionStealerInstalled(void*);
+  Q_SIGNAL void clear();
+  Q_SIGNAL void selectFromList();
+  Q_SIGNAL void pick();
 };
 
 #endif

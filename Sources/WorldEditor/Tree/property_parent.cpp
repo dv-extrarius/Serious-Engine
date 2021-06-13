@@ -16,18 +16,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdAfx.h"
 #include "ui_property_factory.h"
 #include "base_entity_property_tree_item.h"
+#include "pointer_widget.h"
 
-#include <QComboBox>
-
-namespace
-{
-  const char* g_combo_style = R"(
-QComboBox {
-  background-color: transparent;
-  border: 0px;
-}
-)";
-}
+#include <QPointer>
 
 class Property_Parent : public BaseEntityPropertyTreeItem
 {
@@ -59,22 +50,22 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
-    auto* editor = new QComboBox(parent);
-    editor->setStyleSheet(g_combo_style);
+    auto* editor = new PointerWidget((*m_entities.begin())->GetParent(), parent);
 
-    const CEntity* first_parent = (*m_entities.begin())->GetParent();
-    if (first_parent)
-      editor->addItem(first_parent->GetName().str_String, true);
-    editor->addItem("(none)", false);
-    editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
-    editor->installEventFilter(this);
-
-    QObject::connect(editor, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, editor]
-      (int index)
+    QObject::connect(editor, &PointerWidget::clear, this, [this]
       {
-        // if (none) selected, drop parent
-        if (index != -1 && !editor->itemData(index).toBool())
-          _SetParent(nullptr);
+        _SetParent(nullptr);
+      });
+
+    QObject::connect(editor, &PointerWidget::pick, this, [this, pthis = this, editor]
+      {
+        theApp.InstallOneTimeSelectionStealer([qthis = QPointer(pthis)]
+        (CEntity* entity)
+        {
+          if (qthis)
+            qthis->OnEntityPicked(entity);
+        },
+          editor);
       });
 
     return editor;
@@ -120,16 +111,6 @@ private:
   QString _GetTypeName() const override final
   {
     return "CEntityPointer";
-  }
-
-  bool eventFilter(QObject* object, QEvent* event) override
-  {
-    if (event->type() == QEvent::Wheel)
-    {
-      event->ignore();
-      return true;
-    }
-    return BaseEntityPropertyTreeItem::eventFilter(object, event);
   }
 };
 

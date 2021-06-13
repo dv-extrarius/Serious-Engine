@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "stdafx.h"
 #include "WorldEditor.h"
 #include "DlgTipOfTheDay.h"
+#include "EventHub.h"
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <Engine/Templates/Stock_CModelData.h>
 
@@ -508,6 +509,17 @@ static CTString GetNextParam(void)
   }
 }
 
+void CWorldEditorApp::InstallOneTimeSelectionStealer(std::function<void(CEntity*)>&& selection_stealer, void* source)
+{
+  m_selection_stealer = std::move(selection_stealer);
+  EventHub::instance().SelectionStealerInstalled(source);
+}
+
+const std::function<void(CEntity*)>& CWorldEditorApp::GetSelectionStealer() const
+{
+  return m_selection_stealer;
+}
+
 // check for custom parameters
 void CWorldEditorApp::MyParseCommandLine(void)
 {
@@ -547,6 +559,11 @@ BOOL CWorldEditorApp::SubInitInstance()
   HICON app_icon = (HICON)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
   QMfcApp::instance(this)->setWindowIcon(QIcon(QtWin::fromHICON(app_icon)));
   ::DestroyIcon(app_icon);
+
+  QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, [this]
+    {
+      InstallOneTimeSelectionStealer(nullptr, nullptr);
+    });
 
   m_showing_modal_dialog = false;
   // required for visual styles

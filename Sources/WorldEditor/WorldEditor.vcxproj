@@ -276,6 +276,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\base_property_tree_item.cpp" />
     <ClCompile Include="Tree\clickable_label.cpp" />
     <ClCompile Include="Tree\color_widget.cpp" />
+    <ClCompile Include="Tree\pointer_widget.cpp" />
     <ClCompile Include="Tree\properties_entity_root.cpp" />
     <ClCompile Include="Tree\property_anim.cpp" />
     <ClCompile Include="Tree\property_bool.cpp" />
@@ -503,6 +504,14 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
     </CustomBuild>
+    <CustomBuild Include="Tree\pointer_widget.h">
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+    </CustomBuild>
     <ClInclude Include="Tree\properties_entity_root.h" />
     <ClInclude Include="Tree\tree_icons.qrc.h" />
     <ClInclude Include="Tree\ui_property_factory.h" />
@@ -526,6 +535,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     </None>
     <None Include="Tree\clickable_label.h.moc" />
     <None Include="Tree\color_widget.h.moc" />
+    <None Include="Tree\pointer_widget.h.moc" />
     <None Include="Tree\property_tree_model.h.moc" />
     <None Include="Tree\property_item_delegate.h.moc" />
     <CustomBuild Include="Tree\tree_icons.qrc">
