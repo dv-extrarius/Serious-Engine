@@ -16,46 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdAfx.h"
 #include "ui_property_factory.h"
 #include "base_entity_property_tree_item.h"
-
-#include <QDoubleSpinBox>
-
-namespace
-{
-  const char* g_spin_style = R"(
-QDoubleSpinBox {
-  background-color: transparent;
-  border: 0px;
-}
-)";
-
-  class _SpinBox : public QDoubleSpinBox
-  {
-  public:
-    explicit _SpinBox(QWidget* parent) : QDoubleSpinBox(parent) {}
-
-    QString textFromValue(double value) const override
-    {
-      QString text = QDoubleSpinBox::textFromValue(value);
-      int num_trailing_zeros = 0;
-      for (int i = 0; i < text.length(); ++i)
-      {
-        auto c = text.at(text.length() - i - 1);
-        if (c == '0')
-        {
-          ++num_trailing_zeros;
-          continue;
-        }
-        if (c == locale().decimalPoint())
-          ++num_trailing_zeros;
-        break;
-      }
-      text.chop(num_trailing_zeros);
-      if (text.isEmpty())
-        text = "0";
-      return text;
-    }
-  };
-}
+#include "spinbox_no_trailing.h"
 
 class Property_Float_Base : public BaseEntityPropertyTreeItem
 {
@@ -67,8 +28,7 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override
   {
-    auto* editor = new _SpinBox(parent);
-    editor->setStyleSheet(g_spin_style);
+    auto* editor = new SpinBoxNoTrailing(parent);
     editor->setRange(-99999999, 99999999);
     editor->setDecimals(4);
     editor->setSingleStep(0.25);
@@ -127,7 +87,7 @@ protected:
 
   void _CustomizeEditor(QDoubleSpinBox* editor) override
   {
-    editor->setSuffix("°");
+    editor->setSuffix(QStringLiteral("°"));
     editor->setSingleStep(1.0);
   }
 };

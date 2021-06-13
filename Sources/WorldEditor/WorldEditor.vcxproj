@@ -278,6 +278,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\color_widget.cpp" />
     <ClCompile Include="Tree\pointer_widget.cpp" />
     <ClCompile Include="Tree\properties_entity_root.cpp" />
+    <ClCompile Include="Tree\property_angle3d.cpp" />
     <ClCompile Include="Tree\property_anim.cpp" />
     <ClCompile Include="Tree\property_bool.cpp" />
     <ClCompile Include="Tree\property_color.cpp" />
@@ -291,6 +292,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\property_string.cpp" />
     <ClCompile Include="Tree\property_tree_model.cpp" />
     <ClCompile Include="Tree\property_item_delegate.cpp" />
+    <ClCompile Include="Tree\spinbox_no_trailing.cpp" />
     <ClCompile Include="Tree\tree_icons.qrc.cpp" />
     <ClCompile Include="Tree\ui_property_factory.cpp" />
     <ClCompile Include="TriangularisationCombo.cpp" />
@@ -513,6 +515,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
       <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
     </CustomBuild>
     <ClInclude Include="Tree\properties_entity_root.h" />
+    <ClInclude Include="Tree\spinbox_no_trailing.h" />
     <ClInclude Include="Tree\tree_icons.qrc.h" />
     <ClInclude Include="Tree\ui_property_factory.h" />
     <ClInclude Include="TriangularisationCombo.h" />

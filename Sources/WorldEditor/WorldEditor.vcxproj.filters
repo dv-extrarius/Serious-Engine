@@ -330,6 +330,12 @@
     <ClCompile Include="Tree\pointer_widget.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_angle3d.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\spinbox_no_trailing.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
@@ -590,6 +596,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tree\base_entity_property_tree_item.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\spinbox_no_trailing.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
