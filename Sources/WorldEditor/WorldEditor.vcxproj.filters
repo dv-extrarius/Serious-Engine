@@ -336,6 +336,9 @@
     <ClCompile Include="Tree\spinbox_no_trailing.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_aabbox.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
@@ -819,6 +822,9 @@
     </CustomBuild>
     <CustomBuild Include="Tree\pointer_widget.h">
       <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\property_aabbox.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

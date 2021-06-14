@@ -28,7 +28,7 @@ BaseEntityPropertyTreeItem::BaseEntityPropertyTreeItem(BasePropertyTreeItem* par
       if (source == this)
         return;
 
-      if (prop->pid_eptType == mp_property->pid_eptType)
+      if (mp_property && prop && prop->pid_eptType == mp_property->pid_eptType)
       {
         std::vector<CEntity*> common_entities;
         std::set_intersection(entities.begin(), entities.end(),
@@ -66,6 +66,11 @@ bool BaseEntityPropertyTreeItem::EntityPresentInHierarchy(CEntity* entity) const
 bool BaseEntityPropertyTreeItem::_ChangesDocument() const
 {
   return false;
+}
+
+CPropertyID* BaseEntityPropertyTreeItem::_GetProperty() const
+{
+  return mp_property.get();
 }
 
 void BaseEntityPropertyTreeItem::_SetEntitiesAndProperty(const std::set<CEntity*>& entities, std::unique_ptr<CPropertyID>&& prop)

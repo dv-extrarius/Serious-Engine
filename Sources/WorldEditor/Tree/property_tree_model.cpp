@@ -216,7 +216,7 @@ CPropertyID* PropertyTreeModel::GetSelectedProperty(const QModelIndexList& model
     auto* entity_item = dynamic_cast<BaseEntityPropertyTreeItem*>(item);
     if (!entity_item)
       continue;
-    return entity_item->mp_property.get();
+    return entity_item->_GetProperty();
   }
   return nullptr;
 }
@@ -315,6 +315,14 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
   {
     beginInsertRows(parent, starting_row, starting_row + inserted_rows - 1);
     endInsertRows();
+    for (int i = 0; i < parent_item->childCount(); ++i)
+    {
+      auto* inserted_item = parent_item->child(i);
+      if (inserted_item->childCount() <= 0)
+        continue;
+      beginInsertRows(createIndex(inserted_item->row(), 0, inserted_item), 0, inserted_item->childCount());
+      endInsertRows();
+    }
   }
 
   for (auto* pointer_prop : pointer_properties)

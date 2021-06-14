@@ -53,7 +53,7 @@ class BaseEntityPropertyTreeItem : public BasePropertyTreeItem
 public:
   BaseEntityPropertyTreeItem(BasePropertyTreeItem* parent);
 
-  QVariant         data(int column, int role) const override final;
+  QVariant         data(int column, int role) const override;
   virtual bool     ValueIsCommonForAllEntities() const = 0;
   virtual void     SetFirstValueToAllEntities() = 0;
   virtual QWidget* CreateEditor(QWidget* parent) = 0;
@@ -63,6 +63,7 @@ public:
 protected:
   virtual QString _GetTypeName() const = 0;
   virtual bool    _ChangesDocument() const;
+  virtual CPropertyID* _GetProperty() const;
 
   template<typename TPropType>
   bool _ValueIsCommonForAllEntities() const

@@ -278,6 +278,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\color_widget.cpp" />
     <ClCompile Include="Tree\pointer_widget.cpp" />
     <ClCompile Include="Tree\properties_entity_root.cpp" />
+    <ClCompile Include="Tree\property_aabbox.cpp" />
     <ClCompile Include="Tree\property_angle3d.cpp" />
     <ClCompile Include="Tree\property_anim.cpp" />
     <ClCompile Include="Tree\property_bool.cpp" />
