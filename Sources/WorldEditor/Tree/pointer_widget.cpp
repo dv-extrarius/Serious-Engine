@@ -90,7 +90,13 @@ PointerWidget::PointerWidget(CEntity* entity, QWidget* parent)
   btn_pick->setStyleSheet(g_button_style);
   btn_pick->setFixedSize(12, 15);
   btn_pick->setCheckable(true);
-  QObject::connect(btn_pick, &QPushButton::clicked, this, [this] { pick(); });
+  QObject::connect(btn_pick, &QPushButton::clicked, this, [this, btn_pick]
+    {
+      if (btn_pick->isChecked())
+        pick();
+      else
+        theApp.InstallOneTimeSelectionStealer(nullptr, nullptr);
+    });
   layout->addWidget(btn_pick);
 
   auto* btn_list = new QPushButton(QIcon(":/tree_icons/list_entities.png"), "", this);
