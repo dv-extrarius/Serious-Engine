@@ -3,17 +3,12 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <Qt_dir>D:\Qt\5.15.2\msvc2019</Qt_dir>
-    <QtWinMigrate_dir>D:\Projects\qt-solutions\qtwinmigrate</QtWinMigrate_dir>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
   <ItemGroup>
     <BuildMacro Include="Qt_dir">
       <Value>$(Qt_dir)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
-    <BuildMacro Include="QtWinMigrate_dir">
-      <Value>$(QtWinMigrate_dir)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>

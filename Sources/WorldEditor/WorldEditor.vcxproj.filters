@@ -832,9 +832,6 @@
     <CustomBuild Include="Tree\pointer_widget.h">
       <Filter>Header Files\Tree</Filter>
     </CustomBuild>
-    <CustomBuild Include="Tree\property_aabbox.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="Tree\checklist_widget.h">
       <Filter>Header Files\Tree</Filter>
     </CustomBuild>
