@@ -27,6 +27,7 @@ public:
   CSize CalcDynamicLayout(int nLength, DWORD dwMode) override;
   bool IsUnderMouse() const;
   CPropertyID* GetSelectedProperty() const;
+  void SaveState() const;
 
 public:
   CSize m_Size;

@@ -685,6 +685,7 @@ BOOL CMainFrame::DestroyWindow()
 void CMainFrame::OnClose()
 {
 	SaveBarState(_T("General"));
+  m_propertyTree.SaveState();
 	SAVE_BAR_STATE("Browser width", "Browser height", m_Browser);
 	SAVE_BAR_STATE("Property width", "Property height", m_PropertyComboBar);
   SAVE_BAR_STATE("Tree width", "Tree height", m_propertyTree);

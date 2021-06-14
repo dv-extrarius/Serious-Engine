@@ -21,6 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QHeaderView>
 
 BEGIN_MESSAGE_MAP(PropertyTree_MFC_Host, CDialogBar)
   ON_WM_SIZE()
@@ -73,6 +74,16 @@ public:
     mp_winWidget->move(8, 8);
     mp_winWidget->show();
     mp_winWidget->setEnabled(false);
+
+    char* buffer = nullptr;
+    UINT buffer_size = 0;
+    BOOL result = AfxGetApp()->GetProfileBinary(_T("General"), _T("Property Tree Header"), (LPBYTE*)&buffer, &buffer_size);
+    if (result != 0 && buffer_size > 0 && buffer)
+    {
+      QByteArray buffer_qt(buffer, buffer_size);
+      delete[] buffer;
+      mp_tree_view->header()->restoreState(buffer_qt);
+    }
 
     QObject::connect(mp_tree_view->selectionModel(), &QItemSelectionModel::selectionChanged, mp_tree_view, []
       {
@@ -135,6 +146,14 @@ public:
       {
         mp_tree_model->OnEntityPicked(picked_entity, mp_tree_view->selectionModel()->selectedIndexes());
       });
+  }
+
+  void SaveState() const
+  {
+    if (!mp_winWidget)
+      return;
+    QByteArray buffer = mp_tree_view->header()->saveState();
+    AfxGetApp()->WriteProfileBinary(_T("General"), _T("Property Tree Header"), (LPBYTE)buffer.data(), buffer.size());
   }
 
   QWinWidget* WinWidget()
@@ -250,4 +269,9 @@ bool PropertyTree_MFC_Host::IsUnderMouse() const
 CPropertyID* PropertyTree_MFC_Host::GetSelectedProperty() const
 {
   return mp_impl->GetSelectedProperty();
+}
+
+void PropertyTree_MFC_Host::SaveState() const
+{
+  mp_impl->SaveState();
 }
