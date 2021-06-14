@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "base_entity_property_tree_item.h"
 
 #include <QComboBox>
+#include <QSignalBlocker>
 
 namespace
 {
@@ -46,13 +47,13 @@ public:
     CTFileName curr_value = (m_dependencies ? _CurrentPropValueT<CTFileName>() : _CurrentPropValueT<CTFileNameNoDep>());
     if (curr_value != "")
       editor->addItem(QString(curr_value.FileName().str_String) + QString(curr_value.FileExt().str_String), 1);
-    editor->addItem("(pick)", 2);
+    editor->addItem("(browse)", 2);
     editor->addItem("(none)", 3);
 
     if (curr_value != "")
-      editor->setCurrentIndex(0);
+      editor->setCurrentIndex(editor->findData(1));
     else
-      editor->setCurrentIndex(1);
+      editor->setCurrentIndex(editor->findData(3));
 
     editor->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     editor->installEventFilter(this);
@@ -113,6 +114,12 @@ public:
               _WritePropertyT<CTFileName>(chosen_file);
             else
               _WritePropertyT<CTFileNameNoDep>((CTFileNameNoDep)chosen_file);
+          } else {
+            QSignalBlocker block(editor);
+            if (curr_value != "")
+              editor->setCurrentIndex(editor->findData(1));
+            else
+              editor->setCurrentIndex(editor->findData(3));
           }
         }
       });
