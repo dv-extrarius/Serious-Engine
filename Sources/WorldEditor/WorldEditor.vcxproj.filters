@@ -339,6 +339,12 @@
     <ClCompile Include="Tree\property_aabbox.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_spawnflags.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\checklist_widget.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
@@ -826,6 +832,9 @@
     <CustomBuild Include="Tree\property_aabbox.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="Tree\checklist_widget.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="Tree\property_item_delegate.h.moc">
@@ -847,6 +856,9 @@
       <Filter>Header Files\Tree</Filter>
     </None>
     <None Include="Tree\pointer_widget.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\checklist_widget.h.moc">
       <Filter>Header Files\Tree</Filter>
     </None>
   </ItemGroup>

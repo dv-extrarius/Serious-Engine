@@ -274,6 +274,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="ToolTipWnd.cpp" />
     <ClCompile Include="Tree\base_entity_property_tree_item.cpp" />
     <ClCompile Include="Tree\base_property_tree_item.cpp" />
+    <ClCompile Include="Tree\checklist_widget.cpp" />
     <ClCompile Include="Tree\clickable_label.cpp" />
     <ClCompile Include="Tree\color_widget.cpp" />
     <ClCompile Include="Tree\pointer_widget.cpp" />
@@ -290,6 +291,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\property_index.cpp" />
     <ClCompile Include="Tree\property_parent.cpp" />
     <ClCompile Include="Tree\property_pointer.cpp" />
+    <ClCompile Include="Tree\property_spawnflags.cpp" />
     <ClCompile Include="Tree\property_string.cpp" />
     <ClCompile Include="Tree\property_tree_model.cpp" />
     <ClCompile Include="Tree\property_item_delegate.cpp" />
@@ -515,6 +517,14 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
     </CustomBuild>
+    <CustomBuild Include="Tree\checklist_widget.h">
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">%(FullPath).moc;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(Qt_dir)\bin\moc.exe %(FullPath) &gt; %(FullPath).moc</Command>
+    </CustomBuild>
     <ClInclude Include="Tree\properties_entity_root.h" />
     <ClInclude Include="Tree\spinbox_no_trailing.h" />
     <ClInclude Include="Tree\tree_icons.qrc.h" />
@@ -537,6 +547,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <None Include="Tree\base_property_tree_item.h.moc">
       <FileType>Document</FileType>
     </None>
+    <None Include="Tree\checklist_widget.h.moc" />
     <None Include="Tree\clickable_label.h.moc" />
     <None Include="Tree\color_widget.h.moc" />
     <None Include="Tree\pointer_widget.h.moc" />
