@@ -286,6 +286,7 @@ $(Qt_dir)\bin\windeployqt.exe $(SolutionDir)..\Bin_1.10\Debug\QtSolutions_MFCMig
     <ClCompile Include="Tree\property_color.cpp" />
     <ClCompile Include="Tree\property_enum.cpp" />
     <ClCompile Include="Tree\property_file.cpp" />
+    <ClCompile Include="Tree\property_flags.cpp" />
     <ClCompile Include="Tree\property_float.cpp" />
     <ClCompile Include="Tree\property_illumination.cpp" />
     <ClCompile Include="Tree\property_index.cpp" />

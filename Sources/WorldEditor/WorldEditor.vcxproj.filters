@@ -345,6 +345,9 @@
     <ClCompile Include="Tree\checklist_widget.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Tree\property_flags.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WorldEditor.rc">
