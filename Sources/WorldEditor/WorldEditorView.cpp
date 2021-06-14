@@ -7352,11 +7352,31 @@ void CWorldEditorView::OnCenterEntity(CEntity* entity)
   if (!entity)
     return;
 
-  CWorldEditorDoc* pDoc = GetDocument();
+  CWorldEditorDoc *pDoc = GetDocument();
+  CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
+  // bounding box of visible sectors
+  FLOATaabbox3D boxBoundingBox;
 
-  CPlacement3D plEntityPlacement = entity->GetPlacement();
-  GetChildFrame()->m_mvViewer.SetTargetPlacement(plEntityPlacement.pl_PositionVector);
-  pDoc->UpdateAllViews(NULL);
+  FLOAT3D vPos = entity->GetPlacement().pl_PositionVector;
+  FLOATaabbox3D boxEntity;
+
+  if( (ppidProperty != NULL) && (ppidProperty->pid_eptType == CEntityProperty::EPT_RANGE))
+  {
+    // obtain property ptr
+    CEntityProperty *penpProperty = entity->PropertyForName( ppidProperty->pid_strName);
+    // get editing range
+    FLOAT fRange = ENTITYPROPERTY(entity, penpProperty->ep_slOffset, FLOAT);
+    boxEntity |= FLOATaabbox3D( FLOAT3D(0.0f, 0.0f ,0.0f), fRange);
+  }
+  else
+  {
+    entity->GetSize( boxEntity);
+  }
+  boxEntity+=vPos;
+  boxBoundingBox |= boxEntity;
+
+  AllignBox( boxBoundingBox);
 }
 
 void CWorldEditorView::OnUpdateCenterEntity(CCmdUI* pCmdUI)

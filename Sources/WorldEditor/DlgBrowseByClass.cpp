@@ -555,7 +555,7 @@ CDynamicContainer<class CEntity> *CDlgBrowseByClass::GetCurrentContainer(void)
   {
     return &pDoc->m_cenEntitiesSelectedByVolume;
   }
-  else if( pDoc->m_selEntitySelection.Count() > 1)
+  else if(!m_for_picking && pDoc->m_selEntitySelection.Count() > 1)
   {
     pDoc->m_selEntitySelection.ConvertToCTContainer(_tempSelectionContainer);
     return &_tempSelectionContainer;
