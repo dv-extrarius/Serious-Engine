@@ -28,6 +28,7 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
+    m_flags.clear();
     auto* editor = new CheckListWidget(parent);
     _AddFlag(editor, "Easy", SPF_EASY);
     _AddFlag(editor, "Normal", SPF_NORMAL);

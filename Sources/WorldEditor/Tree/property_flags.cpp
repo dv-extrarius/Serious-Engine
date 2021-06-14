@@ -28,6 +28,7 @@ public:
 
   QWidget* CreateEditor(QWidget* parent) override final
   {
+    m_flags.clear();
     auto* actual_property = (*m_entities.begin())->PropertyForName(mp_property->pid_strName);
     auto* enum_type = actual_property->ep_pepetEnumType;
 
