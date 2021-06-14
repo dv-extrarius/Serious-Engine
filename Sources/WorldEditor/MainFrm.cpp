@@ -23,6 +23,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <process.h>
 
+#include <QFile>
+
 #ifdef _DEBUG
 #undef new
 #define new DEBUG_NEW
@@ -138,12 +140,12 @@ static UINT indicators[] =
 	ID_SEPARATOR,
 };
 
-#define STD_BROWSER_WIDTH  162
-#define STD_BROWSER_HEIGHT 400
+#define STD_BROWSER_WIDTH  481
+#define STD_BROWSER_HEIGHT 260
 #define STD_PROPERTYCOMBO_WIDTH  162
 #define STD_PROPERTYCOMBO_HEIGHT 144
-#define STD_PROPERTYTREE_WIDTH 335
-#define STD_PROPERTYTREE_HEIGHT 446
+#define STD_PROPERTYTREE_WIDTH 481
+#define STD_PROPERTYTREE_HEIGHT 600
 
 #define SET_BAR_SIZE( bar, dx, dy)   \
 	bar.m_Size.cx = dx;                 \
@@ -513,6 +515,18 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_CSGDesitnationCombo.SetFont(&theApp.m_Font);
   m_TriangularisationCombo.SetFont(&theApp.m_Font);
   m_ctrlEditMipSwitchDistance.SetFont(&theApp.m_Font);
+
+  if (true)
+  {
+    QFile state_file_qt(":/states/docks_default_state");
+    state_file_qt.open(QIODevice::ReadOnly);
+    QByteArray state_bytes = state_file_qt.readAll();
+    CMemFile state_file((BYTE*)state_bytes.data(), state_bytes.size(), 0);
+    CArchive arr(&state_file, CArchive::load);
+    CDockState dock_state;
+    dock_state.Serialize(arr);
+    SetDockState(dock_state);
+  }
 
   LoadBarState(_T("General"));
 
