@@ -19,6 +19,16 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <QLineEdit>
 
+namespace
+{
+  const char* g_lineedit_style = R"(
+QLineEdit {
+  background-color: transparent;border:
+  0px;
+}
+)";
+}
+
 class Property_String : public BaseEntityPropertyTreeItem
 {
 public:
@@ -30,7 +40,7 @@ public:
   QWidget* CreateEditor(QWidget* parent) override
   {
     auto* editor = new QLineEdit(parent);
-    editor->setStyleSheet("background-color: transparent;border: 0px;");
+    editor->setStyleSheet(g_lineedit_style);
     editor->setText(QString::fromLocal8Bit(_CurrentPropValue().str_String));
 
     QObject::connect(editor, &QLineEdit::editingFinished, this, [this, editor]
