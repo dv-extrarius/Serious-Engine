@@ -21,6 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ui_property_factory.h"
 #include "clickable_label.h"
 
+#include <algorithm>
+
 namespace
 {
   void _JoinProperties(std::list<std::unique_ptr<CPropertyID>>& properties, CEntity* penEntity, bool intersect)
@@ -119,6 +121,12 @@ namespace
       properties.push_back(std::make_unique<CPropertyID>("Spawn flags", CEntityProperty::EPT_SPAWNFLAGS, nullptr, nullptr));
       properties.push_back(std::make_unique<CPropertyID>("Parent", CEntityProperty::EPT_PARENT, nullptr, nullptr));
     }
+    properties.sort([](const std::unique_ptr<CPropertyID>& lhs, const std::unique_ptr<CPropertyID>& rhs)
+      {
+        return std::lexicographical_compare(
+          lhs->pid_strName.str_String, lhs->pid_strName.str_String + lhs->pid_strName.Length(),
+          rhs->pid_strName.str_String, rhs->pid_strName.str_String + rhs->pid_strName.Length());
+      });
     return properties;
   }
 
