@@ -21,6 +21,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ui_property_factory.h"
 #include "clickable_label.h"
 
+#include <QTimer>
+#include <QPointer>
+
 #include <algorithm>
 
 namespace
@@ -343,8 +346,15 @@ void PropertyTreeModel::_FillSubProperties(const QModelIndex& parent, const std:
     if (pointer_prop->ValueIsCommonForAllEntities() && _GetPointerEntity(pointer_prop))
     {
       pointer_prop->appendChild(std::make_unique<_DummyTreeItem>(pointer_prop));
-      beginInsertRows(createIndex(pointer_prop->row(), 0, pointer_prop), 0, 1);
-      endInsertRows();
+
+      QTimer::singleShot(0, this, [this, qpointer_prop = QPointer{ pointer_prop }]
+        {
+          if (qpointer_prop && dynamic_cast<_DummyTreeItem*>(qpointer_prop->child(0)))
+          {
+            beginInsertRows(createIndex(qpointer_prop->row(), 0, qpointer_prop), 0, 1);
+            endInsertRows();
+          }
+        });
     }
   }
 }
