@@ -17,7 +17,9 @@ before_build:
   - cd c:\projects\SeriousEngine\
   - git submodule -q update --init
   - cd Sources
+  - ps: (Get-Content .\WorldEditor\Qt.props) -replace '<Qt_dir>.*</Qt_dir>', '<Qt_dir>C:\Qt\5.15.2\msvc2019</Qt_dir>' | Out-File -encoding ASCII .\WorldEditor\Qt.props
   - GenerateAssimpSLN.bat
+  - GenerateQtWinMigrateSLN.bat
 
 build:
   parallel: true
@@ -27,7 +29,7 @@ build:
 after_build:
   - cd c:\projects\SeriousEngine\
   - mkdir deploy
-  - xcopy /E /I Bin deploy\Bin
+  - xcopy /E /I Bin_1.10 deploy\Bin_1.10
   - xcopy /E /I Controls deploy\Controls
   - xcopy /E /I Data deploy\Data
   - xcopy /E /I Licenses deploy\Licenses
