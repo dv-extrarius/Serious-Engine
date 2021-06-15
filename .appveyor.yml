@@ -38,10 +38,17 @@ after_build:
   - xcopy /E /I VirtualTrees deploy\VirtualTrees
   - xcopy /I ModEXT.txt deploy\
   - xcopy /I SE1_10.gro deploy\
+  - mkdir deploy_portable
+  - xcopy /E /I Bin_1.10 deploy_portable\Bin_1.10
+  - xcopy /E /I Licenses deploy_portable\Bin_1.10\Licenses
 
 artifacts:
   - path: .\deploy
-    name: SeriousEngine-$(appveyor_build_version)
+    name: SeriousEngine-standalone-$(appveyor_build_version)
+    type: zip
+    
+  - path: .\deploy_portable
+    name: SeriousEngine-portable(For vanilla 1.07)-$(appveyor_build_version)
     type: zip
 
 deploy:

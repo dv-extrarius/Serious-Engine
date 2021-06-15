@@ -4,6 +4,7 @@
 
 Enhanced and somewhat fixed version of engine tools (Modeler, World Editor)
 * Compatible with 1.07!
+* Added Property Tree for Serious Editor for more convenient workflow!
 * Updated version of `assimp`, more import formats are available!
 * Modeler upgrade to correctly read imported UV map without tears at seams (previously required creation of additional surfaces at seams to avoid that problem)
 * Modeler bugfix to correctly handle UTF8
@@ -12,26 +13,41 @@ Enhanced and somewhat fixed version of engine tools (Modeler, World Editor)
 * World Editor bugfix to correctly display color selection window
 * New advanced UV mapping tools for World Editor
 
-<p align="center">
-Importing 3D meshes with multiple UV maps as brushes in World Editor
-</p>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/editor_model.gif">
-</p>
 
 <p align="center">
-List of new supported 3D file formats
+New Property Tree in Serious Editor
 </p>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/modeler_formats.gif">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/editor_property_tree.gif">
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/editor_property_tree_2.gif">
 </p>
 
-<p align="center">
-Modeler correctly imports UV map without distorsions by default
-</p>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/modeler.gif">
-</p>
+<details>
+  <summary>New 3D formats importing demos</summary>
+  
+  <p align="center">
+  Importing 3D meshes with multiple UV maps as brushes in World Editor
+  </p>
+  <p align="center">
+    <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/editor_model.gif">
+  </p>
+  
+  <p align="center">
+  List of new supported 3D file formats
+  </p>
+  <p align="center">
+    <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/modeler_formats.gif">
+  </p>
+  
+  <p align="center">
+  Modeler correctly imports UV map without distorsions by default
+  </p>
+  <p align="center">
+    <img src="https://raw.githubusercontent.com/SeriousAlexej/Serious-Engine/master/Help/modeler.gif">
+  </p>
+</details>
 
 <details>
   <summary>World Editor mapping demos</summary>
