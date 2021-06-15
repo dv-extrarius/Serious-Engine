@@ -31,6 +31,9 @@
 !Bison.exe
 !Flex.exe
 
+# Output binary dir
+Bin_1.10/*
+
 # CMake Build dirs (temp)
 Build/
 Debug/
@@ -62,10 +65,13 @@ Temp/ConsoleHistory.txt
 Temp/Profile_CSG.txt
 Temp/Profile_Open.txt
 Temp/*.wld
+Temp/*.tmp
 *.log
 *.rpt	# crashinfo
 *.gms
 *.vis
+*.moc
+*.qrc.h
 Data/*.pri
 Data/*.bin
 Scripts/PersistentSymbols.ini

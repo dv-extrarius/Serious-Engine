@@ -63,18 +63,16 @@ CTFileName CCtrlBrowseFile::GetIntersectingFile()
       !((ppidProperty->pid_eptType == CEntityProperty::EPT_FILENAME) ||
         (ppidProperty->pid_eptType == CEntityProperty::EPT_FILENAMENODEP)) ) return CTString("");
 
-  // lock selection's dynamic container
-  pDoc->m_selEntitySelection.Lock();
   // file name to contain selection intersecting file
   CTFileName fnIntersectingFile;
   CTFileNameNoDep fnIntersectingFileNoDep;
   // for each of the selected entities
-  FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     // obtain property ptr
     CEntityProperty *pepProperty = iten->PropertyForName( ppidProperty->pid_strName);
     // if this is first entity in dynamic container
-    if( pDoc->m_selEntitySelection.Pointer(0) == iten)
+    if( pDoc->m_selEntitySelection.GetFirstInSelection() == iten)
     {
       if( m_bFileNameNoDep)
       {
@@ -107,8 +105,6 @@ CTFileName CCtrlBrowseFile::GetIntersectingFile()
       }
     }
   }
-  // unlock selection's dynamic container
-  pDoc->m_selEntitySelection.Unlock();
   if( m_bFileNameNoDep)
   {
     return fnIntersectingFileNoDep;
@@ -174,7 +170,7 @@ void CCtrlBrowseFile::OnClicked()
   if( fnChoosedFile == "") return;
 
   // for each of the selected entities
-  FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     // obtain property ptr
     CEntityProperty *penpProperty = iten->PropertyForName( ppidProperty->pid_strName);

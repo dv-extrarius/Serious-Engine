@@ -260,7 +260,7 @@ BOOL CModelerApp::SubInitInstance()
 #endif
 
   // settings will be saved into registry instead of ini file
-  SetRegistryKey( L"CroTeam");
+  SetRegistryKey( L"SeriousEngine");
 
 	LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
 

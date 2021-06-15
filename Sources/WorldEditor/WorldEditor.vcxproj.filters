@@ -13,6 +13,12 @@
       <UniqueIdentifier>{581cfb2d-9f80-4531-a100-fb97388ad6c1}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Source Files\Tree">
+      <UniqueIdentifier>{4693e37c-4407-4b98-aaab-4ab59d11d89a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{d450ea09-f9e6-4551-a341-95d01b90e85c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveTextureWnd.cpp">
@@ -251,6 +257,96 @@
     </ClCompile>
     <ClCompile Include="WorldEditorView.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\tree_icons.qrc.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\base_property_tree_item.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_tree_model.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_item_delegate.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="EventHub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_bool.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\ui_property_factory.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\properties_entity_root.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_string.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="property_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_selection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\clickable_label.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\base_entity_property_tree_item.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_parent.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_pointer.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_float.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_enum.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_anim.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_illumination.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_index.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_file.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_color.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\color_widget.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\pointer_widget.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_angle3d.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\spinbox_no_trailing.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_aabbox.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_spawnflags.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\checklist_widget.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\property_flags.cpp">
+      <Filter>Source Files\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -496,6 +592,27 @@
     <ClInclude Include="WorldEditorView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Tree\tree_icons.qrc.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\ui_property_factory.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\properties_entity_root.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="property_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_selection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\base_entity_property_tree_item.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\spinbox_no_trailing.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ReadMe.txt">
@@ -693,5 +810,56 @@
     <CustomBuild Include="res\WorldEditorDoc.ico">
       <Filter>Resource Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="Tree\tree_icons.qrc" />
+    <CustomBuild Include="Tree\property_item_delegate.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\property_tree_model.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="EventHub.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\base_property_tree_item.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\clickable_label.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\color_widget.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\pointer_widget.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Tree\checklist_widget.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tree\property_item_delegate.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\property_tree_model.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="EventHub.h.moc">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Tree\base_property_tree_item.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\clickable_label.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\color_widget.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\pointer_widget.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
+    <None Include="Tree\checklist_widget.h.moc">
+      <Filter>Header Files\Tree</Filter>
+    </None>
   </ItemGroup>
 </Project>

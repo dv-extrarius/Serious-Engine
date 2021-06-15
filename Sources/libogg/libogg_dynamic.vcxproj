@@ -93,9 +93,9 @@
       <ModuleDefinitionFile>ogg.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)..\Bin\Debug\$(InputName).dll;%(Outputs)</Outputs>
-      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin\Debug</Message>
-      <Command>copy Debug\$(TargetName).dll $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
+      <Outputs>$(SolutionDir)..\Bin_1.10\Debug\$(InputName).dll;%(Outputs)</Outputs>
+      <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin_1.10\Debug</Message>
+      <Command>copy Debug\$(TargetName).dll $(SolutionDir)..\Bin_1.10\Debug\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -146,9 +146,9 @@
       <ModuleDefinitionFile>ogg.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)..\Bin\$(InputName).dll;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)..\Bin_1.10\$(InputName).dll;%(Outputs)</Outputs>
       <Message>Copying %(Filename) binaries to $(SolutionDir)..\Bin</Message>
-      <Command>copy Release\$(TargetName).dll $(SolutionDir)..\Bin\ &gt;nul</Command>
+      <Command>copy Release\$(TargetName).dll $(SolutionDir)..\Bin_1.10\ &gt;nul</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

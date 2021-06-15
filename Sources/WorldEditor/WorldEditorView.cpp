@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "WorldEditor.h"
+#include "EventHub.h"
 #include <Engine/Base/Profiling.h>
 #include <Engine/Base/Statistics.h>
 #include <Engine/Templates/Stock_CTextureData.h>
@@ -477,7 +478,7 @@ CWorldEditorView::CWorldEditorView()
   m_iDragEdge = -1;
 
   _pselbvxtSelectOnRender = NULL;
-  _pselenSelectOnRender = NULL;
+  _selenSelectOnRender.m_select_callback = _selenSelectOnRender.m_deselect_callback = nullptr;
   m_bRequestVtxClickSelect = FALSE;
   m_bRequestVtxLassoSelect = FALSE;
   m_bRequestEntityLassoSelect = FALSE;
@@ -1024,9 +1025,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
   CEntity *penOnlySelected = NULL;
   if( pDoc->m_selEntitySelection.Count() == 1)
   {
-    pDoc->m_selEntitySelection.Lock();
-    penOnlySelected = &pDoc->m_selEntitySelection[0];
-    pDoc->m_selEntitySelection.Unlock();
+    penOnlySelected = pDoc->m_selEntitySelection.GetFirstInSelection();
   }
 
   // request vertex selecting from renderer
@@ -1044,7 +1043,8 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
   if( m_bRequestEntityLassoSelect)
   {
     _bSelectAlternative = m_bOnSelectEntityAltDown;
-    _pselenSelectOnRender = &pDoc->m_selEntitySelection;
+    _selenSelectOnRender.m_select_callback   = [](CEntity& entity) { auto* pDoc = theApp.GetDocument(); pDoc->m_selEntitySelection.Select(entity); };
+    _selenSelectOnRender.m_deselect_callback = [](CEntity& entity) { auto* pDoc = theApp.GetDocument(); pDoc->m_selEntitySelection.Deselect(entity); };
     _pavpixSelectLasso = &m_avpixLaso;
   }
 
@@ -1081,7 +1081,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
   }
 
   _pselbvxtSelectOnRender = NULL;
-  _pselenSelectOnRender = NULL;
+  _selenSelectOnRender.m_select_callback = _selenSelectOnRender.m_deselect_callback = nullptr;
   m_bRequestVtxClickSelect = FALSE;
   m_bRequestVtxLassoSelect = FALSE;
   m_bRequestEntityLassoSelect = FALSE;
@@ -1110,7 +1110,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
 
   // if we have entity mode active, at least one entity selected and edititng property of
   // edit range type, and perspective is not on, render entities using rendering range model
-  CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
   if( (pDoc->GetEditingMode() == ENTITY_MODE) &&
       (pDoc->m_selEntitySelection.Count() != 0) &&
       (ppidProperty != NULL) &&
@@ -1119,7 +1119,7 @@ void CWorldEditorView::RenderView( CDrawPort *pDP)
         (ppidProperty->pid_eptType == CEntityProperty::EPT_FLOATAABBOX3D && !bPerspectiveOn)) )
   {
     // for all selected entities
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       // obtain property ptr
       CEntityProperty *penpProperty = iten->PropertyForName( ppidProperty->pid_strName);
@@ -1873,7 +1873,7 @@ void CWorldEditorView::StartMouseInput( CPoint point)
       FLOATaabbox3D box;
       CPlacement3D plEntityCenter;
       plEntityCenter = CPlacement3D( FLOAT3D(0.0f,0.0f,0.0f), ANGLE3D(0,0,0));
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         // accumulate positions
         box |= iten->GetPlacement().pl_PositionVector;
@@ -1887,7 +1887,7 @@ void CWorldEditorView::StartMouseInput( CPoint point)
       pDoc->m_aSelectedEntityPlacements.Clear();
       pDoc->m_aSelectedEntityPlacements.New(pDoc->m_selEntitySelection.Count());
       INDEX ienCurrent = 0;
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         CPlacement3D plRelative = iten->GetPlacement();
         plRelative.AbsoluteToRelativeSmooth(plEntityCenter);
@@ -2797,7 +2797,7 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
       if( pDoc->m_selEntitySelection.Count() != 0)
       {
         // get selected property
-        CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+        CPropertyID *ppid = pMainFrame->GetSelectedProperty();
         // if property is of range or angle3d type
         if( (ppid != NULL) && (ppid->pid_eptType == CEntityProperty::EPT_RANGE) )
         {
@@ -2818,47 +2818,54 @@ void CWorldEditorView::OnLButtonDown(UINT nFlags, CPoint point)
       }
       else
       {
+        EventHub::instance().EntityPicked(crRayHit.cr_penHit);
+
         // get selected property
-        CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+        CPropertyID *ppid = pMainFrame->GetSelectedProperty();
         if( (ppid == NULL) ||
            !((ppid->pid_eptType == CEntityProperty::EPT_ENTITYPTR) ||
              (ppid->pid_eptType == CEntityProperty::EPT_PARENT)) ) return;
 
-        BOOL bParentProperty = ppid->pid_eptType == CEntityProperty::EPT_PARENT;
-        // for each of the selected entities
-        FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+        if (!(pMainFrame && pMainFrame->m_propertyTree.GetStyle() & WS_VISIBLE))
         {
-          if( bParentProperty)
+          BOOL bParentProperty = ppid->pid_eptType == CEntityProperty::EPT_PARENT;
+          // for each of the selected entities
+          for (CEntity* iten : pDoc->m_selEntitySelection)
           {
-            iten->SetParent( crRayHit.cr_penHit);
-          }
-          else if (crRayHit.cr_penHit->IsTargetable())
-          {
-            // obtain entity class ptr
-            CDLLEntityClass *pdecDLLClass = iten->GetClass()->ec_pdecDLLClass;
-            // for all classes in hierarchy of this entity
-            for(;
-                pdecDLLClass!=NULL;
+            if (bParentProperty)
+            {
+              iten->SetParent(crRayHit.cr_penHit);
+            }
+            else if (crRayHit.cr_penHit->IsTargetable())
+            {
+              // obtain entity class ptr
+              CDLLEntityClass* pdecDLLClass = iten->GetClass()->ec_pdecDLLClass;
+              // for all classes in hierarchy of this entity
+              for (;
+                pdecDLLClass != NULL;
                 pdecDLLClass = pdecDLLClass->dec_pdecBase) {
-              // for all properties
-              for(INDEX iProperty=0; iProperty<pdecDLLClass->dec_ctProperties; iProperty++) {
-                CEntityProperty &epProperty = pdecDLLClass->dec_aepProperties[iProperty];
-                if( (ppid->pid_strName == epProperty.ep_strName) &&
-                    (ppid->pid_eptType == epProperty.ep_eptType) )
-                {
-                  // discard old entity settings
-                  iten->End();
-                  // set clicked entity as one that selected entity points to
-                  ENTITYPROPERTY( &*iten, epProperty.ep_slOffset, CEntityPointer) = crRayHit.cr_penHit;
-                  // apply new entity settings
-                  iten->Initialize();
+                // for all properties
+                for (INDEX iProperty = 0; iProperty < pdecDLLClass->dec_ctProperties; iProperty++) {
+                  CEntityProperty& epProperty = pdecDLLClass->dec_aepProperties[iProperty];
+                  if ((ppid->pid_strName == epProperty.ep_strName) &&
+                    (ppid->pid_eptType == epProperty.ep_eptType) &&
+                    iten->IsTargetValid(epProperty.ep_slOffset, crRayHit.cr_penHit)
+                    )
+                  {
+                    // discard old entity settings
+                    iten->End();
+                    // set clicked entity as one that selected entity points to
+                    ENTITYPROPERTY(&*iten, epProperty.ep_slOffset, CEntityPointer) = crRayHit.cr_penHit;
+                    // apply new entity settings
+                    iten->Initialize();
+                  }
                 }
               }
             }
           }
         }
         // update edit range control (by updating parent dialog)
-        pMainFrame->m_PropertyComboBar.UpdateData( FALSE);
+        pMainFrame->m_PropertyComboBar.UpdateData(FALSE);
         // mark that selections have been changed
         pDoc->m_chSelections.MarkChanged();
       }
@@ -3301,12 +3308,20 @@ void CWorldEditorView::OnLButtonUp(UINT nFlags, CPoint point)
           BOOL bWasSelected = crRayHit.cr_penHit->IsSelected( ENF_SELECTED);
           // deselect all selected entities
           INDEX ctSelectedBefore = pDoc->m_selEntitySelection.Count();
-          pDoc->m_selEntitySelection.Clear();
-          // if entity was not selected before
-          if( !((ctSelectedBefore == 1) && bWasSelected))
+
+          const auto& selection_stealer = theApp.GetSelectionStealer();
+          if (selection_stealer)
           {
-            // select it
-            pDoc->m_selEntitySelection.Select( *crRayHit.cr_penHit);
+            selection_stealer(crRayHit.cr_penHit);
+            theApp.InstallOneTimeSelectionStealer(nullptr, nullptr);
+          } else {
+            pDoc->m_selEntitySelection.Clear();
+            // if entity was not selected before
+            if (!((ctSelectedBefore == 1) && bWasSelected))
+            {
+              // select it
+              pDoc->m_selEntitySelection.Select(*crRayHit.cr_penHit);
+            }
           }
         }
         else
@@ -3390,7 +3405,7 @@ void CWorldEditorView::OnRButtonUp(UINT nFlags, CPoint point)
 }
 
 // select all descendents of selected entity
-void SelectDescendents( CEntitySelection &selEntity, CEntity &enParent)
+void SelectDescendents( NewEntitySelection& selEntity, CEntity &enParent)
 {
   FOREACHINLIST( CEntity, en_lnInParent, enParent.en_lhChildren, itenChild)
   {
@@ -3549,10 +3564,8 @@ void CWorldEditorView::OnLButtonDblClk(UINT nFlags, CPoint point)
     // CTRL + LMB teleports entities
     if( (pDoc->m_selEntitySelection.Count() != 0) && (bCtrl) && (!bAlt) )
     {
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
       FLOATaabbox3D box;
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         box |= iten->GetPlacement().pl_PositionVector;
       }}
@@ -3562,7 +3575,7 @@ void CWorldEditorView::OnLButtonDblClk(UINT nFlags, CPoint point)
       FLOAT3D f3dOffset = crRayHit.cr_vHit - f3dCenter;
       CEntity *penBrush = NULL;
       // for each of the selected entities
-      FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         if (iten->en_RenderType == CEntity::RT_BRUSH) {
           penBrush = &*iten;
@@ -3800,7 +3813,7 @@ void CWorldEditorView::CallPopupMenu(CPoint point)
         BOOL bDisableSelectTarget = FALSE;
         if( pDoc->m_selEntitySelection.Count() == 1)
         {
-          CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+          CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
           if( (ppidProperty == NULL) ||
               !((ppidProperty->pid_eptType == CEntityProperty::EPT_PARENT) ||
                 (ppidProperty->pid_eptType == CEntityProperty::EPT_ENTITYPTR)))
@@ -4003,12 +4016,8 @@ void CWorldEditorView::SetEditingDataPaneInfo( BOOL bImidiateRepainting)
   // if we are in entity mode and there is selected entity
   else if( (bEntityMode) && ( pDoc->m_selEntitySelection.Count() != 0) )
   {
-    // lock selection's dynamic container
-    pDoc->m_selEntitySelection.Lock();
     // get first entity
-    CEntity *penEntityOne = pDoc->m_selEntitySelection.Pointer(0);
-    // unlock selection's dynamic container
-    pDoc->m_selEntitySelection.Unlock();
+    CEntity *penEntityOne = pDoc->m_selEntitySelection.GetFirstInSelection();
     // get placement of first entity
     CPlacement3D plEntityOnePlacement = penEntityOne->GetPlacement();
     // if both mouses are pressed, we want to rotate entity so prepare text telling angles
@@ -4411,10 +4420,10 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
     case IA_CHANGING_RANGE_PROPERTY:
     case IA_CHANGING_ANGLE3D_PROPERTY:
     {
-      CPropertyID *ppid = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppid = pMainFrame->GetSelectedProperty();
       if( ppid == NULL) return;
       //for all selected entities
-      FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         // obtain property ptr
         CEntityProperty *penpProperty = iten->PropertyForName( ppid->pid_strName);
@@ -4459,6 +4468,8 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
       }
       // mark that document is changed
       pDoc->SetModifiedFlag( TRUE);
+
+      EventHub::instance().PropertyChanged(pDoc->m_selEntitySelection.Set(), ppid, nullptr);
       break;
     }
     case IA_ROTATING_ENTITY_SELECTION:
@@ -4835,7 +4846,7 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
       if( pDoc->m_aSelectedEntityPlacements.Count()!=pDoc->m_selEntitySelection.Count()) return;
       // if there is no anchored entity in selection or if moving of
       // anchored entities is allowed
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         if( ((iten->GetFlags() & ENF_ANCHORED) != 0) &&
             (!GetChildFrame()->m_bAncoredMovingAllowed) ) return;
@@ -4844,7 +4855,7 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
       INDEX ienCurrent = 0;
       CEntity *penBrush = NULL;
       // for each of the selected entities
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         if (iten->en_RenderType == CEntity::RT_BRUSH) {
           penBrush = &*iten;
@@ -4867,7 +4878,7 @@ void CWorldEditorView::OnMouseMove(UINT nFlags, CPoint point)
       if(m_iaInputAction == IA_ROTATING_ENTITY_SELECTION)
       {
         // check for terrain updating
-        {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+        {for (CEntity* iten : pDoc->m_selEntitySelection)
         {
           CLightSource *pls = iten->GetLightSource();
           if (pls!=NULL)
@@ -5586,6 +5597,10 @@ void CWorldEditorView::RemoveFromLinkedChain(CEntity *pen)
   if( !penCurrent->DropsMarker( fnDropClass, strTargetProperty)) return;
   penpProperty = penCurrent->PropertyForName( strTargetProperty);
   ENTITYPROPERTY( penCurrent, penpProperty->ep_slOffset, CEntityPointer) = penHisTarget;
+
+  CWorldEditorDoc* pDoc = GetDocument();
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ penCurrent }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnDeleteEntities()
@@ -5610,9 +5625,9 @@ void CWorldEditorView::OnDeleteEntities()
   else
   {
     // if any of selected entities is anchored, anchored operation flag must be allowed or deleting is disabled
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         if( (iten->GetFlags() & ENF_ANCHORED) && !GetChildFrame()->m_bAncoredMovingAllowed) return;
       }}
@@ -5626,7 +5641,7 @@ void CWorldEditorView::OnDeleteEntities()
       }
     }
     // check for deleting terrain
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CEntity &en=*iten;
       // if it is terrain
@@ -5643,13 +5658,13 @@ void CWorldEditorView::OnDeleteEntities()
     }}
 
     // for each of the selected entities
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       if( pDoc->m_cenEntitiesSelectedByVolume.IsMember(iten))
         pDoc->m_cenEntitiesSelectedByVolume.Remove(iten);
     }}
     // for each of the selected entities
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       RemoveFromLinkedChain(iten);
     }}
@@ -5658,7 +5673,7 @@ void CWorldEditorView::OnDeleteEntities()
     pDoc->m_selSectorSelection.Clear();
     pDoc->m_selPolygonSelection.Clear();
     // delete all selected entities
-    pDoc->m_woWorld.DestroyEntities( pDoc->m_selEntitySelection);
+    pDoc->m_selEntitySelection.DestroyEntities(pDoc->m_woWorld);
   }
   // mark that document was changed (for saving)
   pDoc->SetModifiedFlag();
@@ -5927,7 +5942,7 @@ void CWorldEditorView::EditCopy( BOOL bAlternative)
         CDynamicContainer<CEntity> selClones;
         CPlacement3D plPaste = GetMouseInWorldPlacement();
         // for all selected entities
-        {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+        {for (CEntity* iten : pDoc->m_selEntitySelection)
         {
           CEntity *pClone = pDoc->m_woWorld.CopyEntityInWorld( *iten, plPaste);
           selClones.Add( pClone);
@@ -5949,7 +5964,7 @@ void CWorldEditorView::EditCopy( BOOL bAlternative)
         // calculate bounding boxes of all selected entities
         FLOATaabbox3D boxEntities;
         // for all selected entities
-        {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+        {for (CEntity* iten : pDoc->m_selEntitySelection)
         {
           FLOATaabbox3D boxCurrentEntity;
           iten->GetSize( boxCurrentEntity);
@@ -5985,7 +6000,9 @@ void CWorldEditorView::EditCopy( BOOL bAlternative)
 
         // copy entities in selection
         CEntitySelection senDummy;
-        woEntityClipboard.CopyEntities(pDoc->m_woWorld, pDoc->m_selEntitySelection,
+        CDynamicContainer<CEntity> selection;
+        pDoc->m_selEntitySelection.ConvertToCTContainer(selection);
+        woEntityClipboard.CopyEntities(pDoc->m_woWorld, selection,
           senDummy, plCenter);
         senDummy.Clear();
 
@@ -6184,8 +6201,10 @@ void CWorldEditorView::OnEditPaste()
       }
     }}
     // copy entities in clipboard
+    CEntitySelection tmp_selection;
     pDoc->m_woWorld.CopyEntities(woEntityClipboard, cenToCopy,
-      pDoc->m_selEntitySelection, plPaste);
+      tmp_selection, plPaste);
+    pDoc->m_selEntitySelection.ConvertFromCTSelection(tmp_selection);
 
     pDoc->m_chSelections.MarkChanged();
     pDoc->SetModifiedFlag();
@@ -6615,7 +6634,7 @@ BOOL CWorldEditorView::PreTranslateMessage(MSG* pMsg)
     else if( bEntityMode)
     {
       // get property ID
-      CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
       // if we have at least one entity selected and edititng property of edit range type
       // and Ctrl+Shift pressed
       BOOL bEditingProperties = ( (pDoc->m_selEntitySelection.Count() != 0) &&
@@ -7171,7 +7190,7 @@ void CWorldEditorView::OnFunction()
   {
     pDoc->m_cenEntitiesSelectedByVolume.Clear();
     // for each of the entities selected by volume
-    FOREACHINDYNAMICCONTAINER( pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       // add entity into volume selection
       if( !pDoc->m_cenEntitiesSelectedByVolume.IsMember(iten))
@@ -7312,7 +7331,7 @@ void CWorldEditorView::OnCenterEntity()
     // reset position
     FLOAT3D vEntityPlacementAverage = FLOAT3D( 0.0f, 0.0f, 0.0f);
     //for all selected entities
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       // get placement of current entity
       CPlacement3D plEntityPlacement = iten->GetPlacement();
@@ -7326,6 +7345,38 @@ void CWorldEditorView::OnCenterEntity()
   }
   // update all views
   pDoc->UpdateAllViews( NULL);
+}
+
+void CWorldEditorView::OnCenterEntity(CEntity* entity)
+{
+  if (!entity)
+    return;
+
+  CWorldEditorDoc *pDoc = GetDocument();
+  CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
+  // bounding box of visible sectors
+  FLOATaabbox3D boxBoundingBox;
+
+  FLOAT3D vPos = entity->GetPlacement().pl_PositionVector;
+  FLOATaabbox3D boxEntity;
+
+  if( (ppidProperty != NULL) && (ppidProperty->pid_eptType == CEntityProperty::EPT_RANGE))
+  {
+    // obtain property ptr
+    CEntityProperty *penpProperty = entity->PropertyForName( ppidProperty->pid_strName);
+    // get editing range
+    FLOAT fRange = ENTITYPROPERTY(entity, penpProperty->ep_slOffset, FLOAT);
+    boxEntity |= FLOATaabbox3D( FLOAT3D(0.0f, 0.0f ,0.0f), fRange);
+  }
+  else
+  {
+    entity->GetSize( boxEntity);
+  }
+  boxEntity+=vPos;
+  boxBoundingBox |= boxEntity;
+
+  AllignBox( boxBoundingBox);
 }
 
 void CWorldEditorView::OnUpdateCenterEntity(CCmdUI* pCmdUI)
@@ -7347,7 +7398,7 @@ void CWorldEditorView::OnDropMarker()
 
   if(pDoc->m_selEntitySelection.Count() == 1)
   {
-    CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+    CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
     if(enOnly.DropsMarker( fnDropClass, strTargetProperty))
     {
       OnDropMarker(enOnly.GetPlacement());
@@ -7363,7 +7414,7 @@ void CWorldEditorView::OnDropMarker(CPlacement3D plMarker)
   CTString strTargetProperty;
   CEntityProperty *penpProperty;
 
-  CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+  CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
   // obtain drop class and target property name
   if( !enOnly.DropsMarker( fnDropClass, strTargetProperty)) return;
   penpProperty = enOnly.PropertyForName( strTargetProperty);
@@ -7406,16 +7457,22 @@ void CWorldEditorView::OnDropMarker(CPlacement3D plMarker)
     if( !penFirstInChain->DropsMarker( fnDropClass, strTargetProperty)) return;
     penpProperty = penFirstInChain->PropertyForName( strTargetProperty);
     ENTITYPROPERTY( penFirstInChain, penpProperty->ep_slOffset, CEntityPointer) = penSpawned;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penFirstInChain }, &pid, nullptr);
   }
   if( !penSpawned->DropsMarker( fnDropClass, strTargetProperty)) return;
   penpProperty = penSpawned->PropertyForName( strTargetProperty);
   if( penSecondInChain != NULL)
   {
     ENTITYPROPERTY( penSpawned, penpProperty->ep_slOffset, CEntityPointer) = penSecondInChain;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penSpawned }, &pid, nullptr);
   }
   else
   {
     ENTITYPROPERTY( penSpawned, penpProperty->ep_slOffset, CEntityPointer) = penFirstInChain;
+    CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+    EventHub::instance().PropertyChanged({ penSpawned }, &pid, nullptr);
   }
   // set our only selected entity to point to spawned entity
   if( !enOnly.DropsMarker( fnDropClass, strTargetProperty)) return;
@@ -7425,6 +7482,8 @@ void CWorldEditorView::OnDropMarker(CPlacement3D plMarker)
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnUpdateDropMarker(CCmdUI* pCmdUI)
@@ -7436,7 +7495,7 @@ void CWorldEditorView::OnUpdateDropMarker(CCmdUI* pCmdUI)
   // if we are in entity mode, we have 1 entity selected and entity can drop marker
   if( (pDoc->GetEditingMode() == ENTITY_MODE) &&
       (pDoc->m_selEntitySelection.Count() == 1) &&
-      (pDoc->m_selEntitySelection.GetFirst().DropsMarker( fnDropClass, strTargetProperty)) )
+      (pDoc->m_selEntitySelection.GetFirstInSelection()->DropsMarker( fnDropClass, strTargetProperty)) )
   {
     pCmdUI->Enable( TRUE);
   }
@@ -7451,7 +7510,7 @@ void CWorldEditorView::OnTestConnections()
 	CWorldEditorDoc* pDoc = GetDocument();
   CEntityProperty *penpProperty;
 
-  CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+  CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
   CTString strTargetProperty;
 
   // get target pointer for curently selected entity
@@ -7493,6 +7552,9 @@ void CWorldEditorView::OnTestConnections()
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnTestConnectionsBack() 
@@ -7500,7 +7562,7 @@ void CWorldEditorView::OnTestConnectionsBack()
 	CWorldEditorDoc* pDoc = GetDocument();
   CEntityProperty *penpProperty;
 
-  CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+  CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
   CTString strTargetProperty;
 
   // get target pointer for curently selected entity
@@ -7553,6 +7615,9 @@ void CWorldEditorView::OnTestConnectionsBack()
   pDoc->SetModifiedFlag();
   pDoc->m_chSelections.MarkChanged();
   pDoc->UpdateAllViews( NULL);
+
+  CPropertyID pid(penpProperty->ep_strName, penpProperty->ep_eptType, penpProperty, nullptr);
+  EventHub::instance().PropertyChanged({ &enOnly }, &pid, nullptr);
 }
 
 void CWorldEditorView::OnUpdateTestConnections(CCmdUI* pCmdUI)
@@ -7564,7 +7629,7 @@ void CWorldEditorView::OnUpdateTestConnections(CCmdUI* pCmdUI)
   // if we have only one entity selected and we are in entity mode
   if( bModeAndCount)
   {
-    CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+    CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
     CTString strTargetProperty;
     // if we can perform test path function on this entity
     if( enOnly.MovesByTargetedRoute( strTargetProperty))
@@ -7853,6 +7918,10 @@ void CWorldEditorView::OnRButtonDblClk(UINT nFlags, CPoint point)
 
 void CWorldEditorView::OnLastPrimitive()
 {
+  CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
+  if (pMainFrame->m_propertyTree.IsUnderMouse())
+    return;
+
   CWorldEditorDoc* pDoc = GetDocument();
 
   CTString strError;
@@ -8830,7 +8899,7 @@ void CWorldEditorView::OnSelectAllSectors()
   // perform select sectors on whole entity selection
   else if( m_penEntityHitOnContext->IsSelected( ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CEntity::RenderType rt = iten->GetRenderType();
       if (rt==CEntity::RT_BRUSH || rt==CEntity::RT_FIELDBRUSH)
@@ -8875,12 +8944,12 @@ void CWorldEditorView::CenterSelected(void)
 {
   CWorldEditorDoc *pDoc = GetDocument();
   CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
-  CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+  CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
   // bounding box of visible sectors
   FLOATaabbox3D boxBoundingBox;
   if( pDoc->GetEditingMode() == ENTITY_MODE && (pDoc->m_selEntitySelection.Count() != 0) )
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       FLOAT3D vPos = iten->GetPlacement().pl_PositionVector;
       FLOATaabbox3D boxEntity;
@@ -9482,7 +9551,7 @@ void CWorldEditorView::OnSelectSectorsArroundEntity()
   }
   else
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       {FOREACHSRCOFDST(iten->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
         // if sector is not hidden and not selected
@@ -9511,7 +9580,7 @@ void CWorldEditorView::OnSelectSectorsArroundEntityOnContext()
   // perform select sectors on whole entity selection
   if( m_penEntityHitOnContext->IsSelected( ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       {FOREACHSRCOFDST(iten->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
         // if sector is not hidden and not selected
@@ -9625,7 +9694,7 @@ void CWorldEditorView::DiscardShadows( CEntity *penEntity)
   FLOATaabbox3D boxForDiscard;
   if( (penEntity == NULL) || (penEntity->IsSelected( ENF_SELECTED)) )
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       // if it is brush
       if (iten->en_RenderType == CEntity::RT_BRUSH)
@@ -9791,12 +9860,10 @@ void CWorldEditorView::OnKeyBackslash()
     CMainFrame* pMainFrame = STATIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
     if( pDoc->m_selEntitySelection.Count() == 1)
     {
-      pDoc->m_selEntitySelection.Lock();
-      CEntity *penOnlySelected = &pDoc->m_selEntitySelection[0];
-      pDoc->m_selEntitySelection.Unlock();
+      CEntity *penOnlySelected = pDoc->m_selEntitySelection.GetFirstInSelection();
 
       CEntity *penToSelect = NULL;
-      CPropertyID *ppidProperty = pMainFrame->m_PropertyComboBar.GetSelectedProperty();
+      CPropertyID *ppidProperty = pMainFrame->GetSelectedProperty();
       if( ppidProperty == NULL) return;
       if( ppidProperty->pid_eptType == CEntityProperty::EPT_PARENT)
       {
@@ -9835,9 +9902,7 @@ void CWorldEditorView::OnKeyBackslash()
 void CWorldEditorView::OnSavePicturesForEnvironment()
 {
   CWorldEditorDoc* pDoc = GetDocument();
-  pDoc->m_selEntitySelection.Lock();
-  CEntity *pen = &pDoc->m_selEntitySelection[0];
-  pDoc->m_selEntitySelection.Unlock();
+  CEntity *pen = pDoc->m_selEntitySelection.GetFirstInSelection();
 
   CTFileName fnName = _EngineGUI.FileRequester( "Save pictures as ...",
     FILTER_TGA FILTER_ALL FILTER_END,"Environment pictures directory", "Textures\\");
@@ -10215,7 +10280,7 @@ void CWorldEditorView::OnDestroy()
 void CWorldEditorView::OnFallDown()
 {
   CWorldEditorDoc *pDoc = GetDocument();
-  FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     iten->FallDownToFloor();
   }
@@ -10619,7 +10684,7 @@ void CWorldEditorView::Rotate( FLOAT fAngleLR, FLOAT fAngleUD, BOOL bSmooth/*=FA
   else if( (pDoc->GetEditingMode() == ENTITY_MODE))
   {
     CEntity *penBrush = NULL;
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       if (iten->en_RenderType == CEntity::RT_BRUSH) {
         penBrush = &*iten;
@@ -10634,7 +10699,7 @@ void CWorldEditorView::Rotate( FLOAT fAngleLR, FLOAT fAngleUD, BOOL bSmooth/*=FA
     }}
 
     // check for terrain updating
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CLightSource *pls = iten->GetLightSource();
       if (pls!=NULL)
@@ -10873,7 +10938,7 @@ void CWorldEditorView::OnSelectWhoTargetsOnContext()
       (m_penEntityHitOnContext->IsSelected( ENF_SELECTED)) )
   {
     // perform on whole selection
-    {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    {for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       dcEntities.Add( iten);
     }}
@@ -10893,7 +10958,7 @@ void CWorldEditorView::OnSelectWhoTargets()
   // to hold entities for selecting
   CDynamicContainer<CEntity> dcEntities;
   // perform on whole selection
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     dcEntities.Add( iten);
   }}
@@ -10972,7 +11037,7 @@ void CWorldEditorView::SelectAllTargetsOfSelectedEntities(void)
   CWorldEditorDoc *pDoc = GetDocument();
   // to hold entities for selecting
   CDynamicContainer<CEntity> dcEntities;
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     // obtain entity class ptr
     CDLLEntityClass *pdecDLLClass = iten->GetClass()->ec_pdecDLLClass;
@@ -11314,7 +11379,7 @@ void CWorldEditorView::OnReoptimizeBrushes()
 
     if( bSelected && (pDoc->GetEditingMode() == ENTITY_MODE))
     {
-      {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      {for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         if (iten->en_RenderType == CEntity::RT_BRUSH)
         {
@@ -11802,7 +11867,7 @@ void CWorldEditorView::OnSelectOfSameClass()
   CDynamicContainer<CEntity> dcEntities;
 
   // for all selected entities
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     dcEntities.Add( &*iten);
   }}
@@ -12017,7 +12082,7 @@ void CWorldEditorView::ApplyFreeModeControls( CPlacement3D &pl, ANGLE3D &aAbs, F
       CTString strTargetProperty;
       if(pDoc->m_selEntitySelection.Count() == 1)
       {
-        CEntity &enOnly = pDoc->m_selEntitySelection.GetFirst();
+        CEntity &enOnly = *pDoc->m_selEntitySelection.GetFirstInSelection();
         if(enOnly.DropsMarker( fnDropClass, strTargetProperty))
         {
           OnDropMarker(pl);
@@ -12738,7 +12803,7 @@ void CWorldEditorView::OnSwapLayers23()
 void CWorldEditorView::OnSelectDescendants() 
 {
 	CWorldEditorDoc* pDoc = GetDocument();
-  FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     SelectDescendents( pDoc->m_selEntitySelection, *iten);
   }
@@ -12752,7 +12817,7 @@ void CWorldEditorView::OnRotateToTargetOrigin()
   if(m_penEntityHitOnContext != NULL)
   {
    	CWorldEditorDoc* pDoc = GetDocument();
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       const CPlacement3D &plDst=iten->GetPlacement();
       const CPlacement3D &plSrc=m_penEntityHitOnContext->GetPlacement();
@@ -12774,7 +12839,7 @@ void CWorldEditorView::OnRotateToTargetCenter()
   if(m_penEntityHitOnContext != NULL)
   {
    	CWorldEditorDoc* pDoc = GetDocument();
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       const CPlacement3D &plDst=iten->GetPlacement();
       FLOATaabbox3D box;
@@ -12817,7 +12882,7 @@ void CWorldEditorView::OnPastePlacement()
   if(m_penEntityHitOnContext==NULL) return;
   if( m_penEntityHitOnContext->IsSelected(ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       iten->SetPlacement(theApp.m_plClipboard2);
     }
@@ -12836,7 +12901,7 @@ void CWorldEditorView::OnPasteOrientation()
   if(m_penEntityHitOnContext==NULL) return;
   if( m_penEntityHitOnContext->IsSelected(ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CPlacement3D pl=iten->GetPlacement();
       pl.pl_OrientationAngle=theApp.m_plClipboard1.pl_OrientationAngle;
@@ -12859,7 +12924,7 @@ void CWorldEditorView::OnPastePosition()
   if(m_penEntityHitOnContext==NULL) return;
   if( m_penEntityHitOnContext->IsSelected(ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CPlacement3D pl=iten->GetPlacement();
       pl.pl_PositionVector=theApp.m_plClipboard1.pl_PositionVector;
@@ -12881,12 +12946,12 @@ void CWorldEditorView::Align(BOOL bX,BOOL bY,BOOL bZ,BOOL bH,BOOL bP,BOOL bB)
  	CWorldEditorDoc* pDoc = GetDocument();
   INDEX ctSelected=pDoc->m_woWorld.wo_cenEntities.Count();
   CEntity *penLast=NULL;
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     penLast=&*iten;
   }}
   CPlacement3D penSrc=penLast->GetPlacement();
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     CPlacement3D pl=iten->GetPlacement();
     if( bX) {pl.pl_PositionVector(1)=penSrc.pl_PositionVector(1);};
@@ -13253,7 +13318,7 @@ void CWorldEditorView::AutoApplyTexture(FLOATaabbox3D boxBrush, CTFileName &fnTe
 
   CWorldEditorDoc* pDoc = GetDocument();
   // textureize mip levels
-  FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     CEntity *pen=&*iten;
     if( pen->GetRenderType() == CEntity::RT_BRUSH)
@@ -13286,7 +13351,7 @@ void CWorldEditorView::OnAutotexturizeMips()
   CWorldEditorDoc* pDoc = GetDocument();
   FLOATaabbox3D boxBrush;
   // for each entity in the world
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     CEntity *pen=&*iten;
     if( pen->GetRenderType() == CEntity::RT_BRUSH)
@@ -13352,7 +13417,7 @@ void CWorldEditorView::OnStretchRelativeOffset()
   if( dlg.DoModal()!=IDOK) return;
   if( m_penEntityHitOnContext->IsSelected(ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       if( iten->GetParent()!=NULL)
       {

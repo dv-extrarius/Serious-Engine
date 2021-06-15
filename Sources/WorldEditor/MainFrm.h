@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef MAINFRAME_H
 #define MAINFRAME_H 1
 
+#include "property_tree.h"
+
 #define STATUS_LINE_PANE 0
 #define EDITING_MODE_ICON_PANE 1
 #define EDITING_MODE_PANE 2
@@ -78,12 +80,14 @@ public:
   // Tool dialogs
   CBrowser m_Browser;
   CPropertyComboBar m_PropertyComboBar;
+  PropertyTree_MFC_Host m_propertyTree;
   // mini frame used to hold property sheet with dialog pages
   CInfoFrame *m_pInfoFrame;
   CTFileName m_fnLastVirtualTree;
   // color palette
   CColorPaletteWnd *m_pColorPalette;
   CToolTipWnd *m_pwndToolTip;
+  CWorldEditorDoc* m_pLastDoc;
 // Operations
 public:
   void DockControlBarRelativeTo(CControlBar* Bar,CControlBar* LeftOf,
@@ -106,6 +110,8 @@ public:
   void ManualToolTipOn( PIX pixManualX, PIX pixManualY);
   void ManualToolTipUpdate( void);
   void SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fTime);
+
+	CPropertyID* GetSelectedProperty();
 
 // Overrides
 	// ClassWizard generated virtual function overrides

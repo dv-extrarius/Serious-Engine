@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // DlgBrowseByClass.h : header file
 //
 
+#include <functional>
+
 /////////////////////////////////////////////////////////////////////////////
 // CDlgBrowseByClass dialog
 
@@ -29,7 +31,7 @@ class CDlgBrowseByClass : public CDialog
 {
 // Construction
 public:
-	CDlgBrowseByClass(CWnd* pParent = NULL);   // standard constructor
+	CDlgBrowseByClass(CWnd* pParent = NULL, bool for_picking = false, std::function<bool(CEntity*)>&& filter = nullptr);   // standard constructor
 	~CDlgBrowseByClass();
   void AddEntity( CEntity *pen);
   void FillListWithEntities(void);
@@ -39,6 +41,9 @@ public:
   CDynamicContainer<class CEntity> *GetCurrentContainer(void);
 
   BOOL m_bCenterSelected;
+	const bool m_for_picking;
+	std::function<bool(CEntity*)> m_filter;
+	CEntity* m_selected_entity;
 
 // Dialog Data
 	//{{AFX_DATA(CDlgBrowseByClass)

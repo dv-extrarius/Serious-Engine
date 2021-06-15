@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "PropertyComboBox.h"
+#include "EventHub.h"
 
 #ifdef _DEBUG
 #undef new
@@ -216,14 +217,11 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
         delete &itDel.Current();
       }
 
-      // lock selection's dynamic container
-      pDoc->m_selEntitySelection.Lock();
-
       // for each of the selected entities
-      FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+      for (CEntity* iten : pDoc->m_selEntitySelection)
       {
         // if this is first entity in dynamic container
-        if( pDoc->m_selEntitySelection.Pointer(0) == iten)
+        if( pDoc->m_selEntitySelection.GetFirstInSelection() == iten)
         {
           // add all of its properties into joint list but don't intersect with existing ones
           JoinProperties( iten, FALSE);
@@ -234,8 +232,6 @@ BOOL CPropertyComboBox::OnIdle(LONG lCount)
           JoinProperties( iten, TRUE);
         }
       }
-      // unlock selection's dynamic container
-      pDoc->m_selEntitySelection.Unlock();
 
       if( pDoc->m_selEntitySelection.Count() != 0)
       {

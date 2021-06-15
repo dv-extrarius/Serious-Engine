@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/states">
+        <file>docks_default_state</file>
+    </qresource>
+    <qresource prefix="/tree_icons">
+        <file>tree_closed.png</file>
+        <file>tree_opened.png</file>
+        <file>cross.png</file>
+        <file>list_entities.png</file>
+        <file>pick_entity.png</file>
+        <file>locate.png</file>
+    </qresource>
+</RCC>

@@ -355,6 +355,7 @@ public:
 	afx_msg void OnCopyTexture();
 	afx_msg void OnPasteTexture();
 	afx_msg void OnCenterEntity();
+	afx_msg void OnCenterEntity(CEntity* entity);
 	afx_msg void OnFunction();
 	afx_msg void OnUpdateCenterEntity(CCmdUI* pCmdUI);
 	afx_msg void OnDropMarker();

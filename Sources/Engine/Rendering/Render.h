@@ -216,9 +216,16 @@ public:
 // global instance used in rendering
 ENGINE_API extern CWorldRenderPrefs _wrpWorldRenderPrefs;
 
+struct ENGINE_API EntitySelectionCallbacks
+{
+  using TCallback = void(*)(CEntity&);
+  TCallback m_select_callback;
+  TCallback m_deselect_callback;
+};
+
 // variables for selection on rendering
 ENGINE_API extern CBrushVertexSelection *_pselbvxtSelectOnRender;
-ENGINE_API extern CEntitySelection *_pselenSelectOnRender;
+ENGINE_API extern EntitySelectionCallbacks _selenSelectOnRender;
 ENGINE_API extern CStaticStackArray<PIX2D> *_pavpixSelectLasso;
 ENGINE_API extern PIX2D _vpixSelectNearPoint;
 ENGINE_API extern BOOL _bSelectAlternative;

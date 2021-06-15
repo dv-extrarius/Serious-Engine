@@ -19,8 +19,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "stdafx.h"
 #include "MainFrm.h"
+#include "EventHub.h"
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <process.h>
+
+#include <QFile>
 
 #ifdef _DEBUG
 #undef new
@@ -54,6 +57,8 @@ FLOAT _fLastTimePressureApplied=-1;
 IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
+  ON_COMMAND_EX(ID_VIEW_PROPERTY_TREE, OnBarCheck)
+  ON_UPDATE_COMMAND_UI(ID_VIEW_PROPERTY_TREE, OnUpdateControlBarMenu)
 	ON_COMMAND_EX(ID_VIEW_PROPERTYCOMBO, OnBarCheck)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_PROPERTYCOMBO, OnUpdateControlBarMenu)
 	ON_COMMAND_EX(ID_VIEW_BROWSEDIALOGBAR, OnBarCheck)
@@ -135,10 +140,12 @@ static UINT indicators[] =
 	ID_SEPARATOR,
 };
 
-#define STD_BROWSER_WIDTH  162
-#define STD_BROWSER_HEIGHT 400
+#define STD_BROWSER_WIDTH  481
+#define STD_BROWSER_HEIGHT 260
 #define STD_PROPERTYCOMBO_WIDTH  162
 #define STD_PROPERTYCOMBO_HEIGHT 144
+#define STD_PROPERTYTREE_WIDTH 481
+#define STD_PROPERTYTREE_HEIGHT 600
 
 #define SET_BAR_SIZE( bar, dx, dy)   \
 	bar.m_Size.cx = dx;                 \
@@ -177,6 +184,7 @@ CMainFrame::CMainFrame()
   m_pInfoFrame = NULL;
   m_pColorPalette = NULL;
   m_pwndToolTip = NULL;
+  m_pLastDoc = nullptr;
 }
 
 CMainFrame::~CMainFrame()
@@ -404,6 +412,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;		// fail to create
 	}
 
+  if (!m_propertyTree.Create(this, IDD_PROPERTY_TREE,
+    CBRS_LEFT | CBRS_FLYBY | CBRS_HIDE_INPLACE | CBRS_SIZE_DYNAMIC,
+    ID_VIEW_PROPERTY_TREE))
+  {
+    TRACE0("Failed to create dialog bar m_propertyTree\n");
+    return -1;
+  }
+
 	// Initialize windows classic tool bar
   m_wndToolBar.SetWindowText(L"File tools");
   m_wndToolBar.SetBarStyle(m_wndToolBar.GetBarStyle() |
@@ -461,6 +477,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_PropertyComboBar.SetWindowText(L"Entity properties");
   m_PropertyComboBar.EnableDocking(CBRS_ALIGN_ANY);
 
+  m_propertyTree.SetWindowText(L"Property tree");
+  m_propertyTree.EnableDocking(CBRS_ALIGN_ANY);
+
 	EnableDocking(CBRS_ALIGN_ANY);
 
   // We will set default width and height of browser and property dialog bars
@@ -481,6 +500,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   // dock browser and properties dialog
   DockControlBar(&m_Browser);
 	DockControlBar(&m_PropertyComboBar);
+  DockControlBar(&m_propertyTree);
 	//DockControlBarRelativeTo(&m_PropertyComboBar, &m_Browser, DOCK_UP);
 
   // We will try to load tool docked and floated positions of all ctrl bars from INI file
@@ -488,10 +508,25 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     STD_BROWSER_WIDTH, STD_BROWSER_HEIGHT);
 	LOAD_BAR_STATE("Property width", "Property height", m_PropertyComboBar,
     STD_PROPERTYCOMBO_WIDTH, STD_PROPERTYCOMBO_HEIGHT);
+  LOAD_BAR_STATE("Tree width", "Tree height", m_propertyTree,
+    STD_PROPERTYTREE_WIDTH, STD_PROPERTYTREE_HEIGHT);
+
   // set font for combo and edit boxes
   m_CSGDesitnationCombo.SetFont(&theApp.m_Font);
   m_TriangularisationCombo.SetFont(&theApp.m_Font);
   m_ctrlEditMipSwitchDistance.SetFont(&theApp.m_Font);
+
+  if (true)
+  {
+    QFile state_file_qt(":/states/docks_default_state");
+    state_file_qt.open(QIODevice::ReadOnly);
+    QByteArray state_bytes = state_file_qt.readAll();
+    CMemFile state_file((BYTE*)state_bytes.data(), state_bytes.size(), 0);
+    CArchive arr(&state_file, CArchive::load);
+    CDockState dock_state;
+    dock_state.Serialize(arr);
+    SetDockState(dock_state);
+  }
 
   LoadBarState(_T("General"));
 
@@ -650,8 +685,10 @@ BOOL CMainFrame::DestroyWindow()
 void CMainFrame::OnClose()
 {
 	SaveBarState(_T("General"));
+  m_propertyTree.SaveState();
 	SAVE_BAR_STATE("Browser width", "Browser height", m_Browser);
 	SAVE_BAR_STATE("Property width", "Property height", m_PropertyComboBar);
+  SAVE_BAR_STATE("Tree width", "Tree height", m_propertyTree);
 
   // save custom picker colors to registry
   SET_COLOR_TO_INI( 0, L"00");
@@ -850,6 +887,16 @@ BOOL CMainFrame::OnIdle(LONG lCount)
 
   // call on idle for property combo bar
   m_PropertyComboBar.OnIdle( lCount);
+
+  CWorldEditorDoc* pDoc = theApp.GetDocument();
+  if (m_pLastDoc != pDoc)
+  {
+    if (pDoc)
+      pDoc->m_selEntitySelection.Notify();
+    else
+      EventHub::instance().CurrentEntitySelectionChanged({});
+  }
+  m_pLastDoc = pDoc;
 
   return TRUE;
 }
@@ -1631,4 +1678,12 @@ void CMainFrame::SetStatusBarMessage( CTString strMessage, INDEX iPane, FLOAT fT
   m_wndStatusBar.SetPaneText( iPane, CString(strMessage), TRUE);
   FLOAT tmNow = _pTimer->GetHighPrecisionTimer().GetSeconds();
   theApp.m_tmStartStatusLineInfo=tmNow + fTime;
+}
+
+CPropertyID* CMainFrame::GetSelectedProperty()
+{
+  if (m_propertyTree.GetStyle() & WS_VISIBLE)
+    if (auto* prop = m_propertyTree.GetSelectedProperty())
+      return prop;
+  return m_PropertyComboBar.GetSelectedProperty();
 }

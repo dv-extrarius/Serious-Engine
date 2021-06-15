@@ -19,8 +19,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "stdafx.h"
 #include "WorldEditor.h"
 #include "DlgTipOfTheDay.h"
+#include "EventHub.h"
 #include <Engine/Templates/Stock_CTextureData.h>
 #include <Engine/Templates/Stock_CModelData.h>
+
+#include <QtWin>
+#include <QIcon>
+#include <QMessageBox>
 
 #include <sys/stat.h>
 #include <sys/utime.h>
@@ -117,6 +122,7 @@ void InitializeGame(void)
 BEGIN_MESSAGE_MAP(CWorldEditorApp, CWinApp)
 	//{{AFX_MSG_MAP(CWorldEditorApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+  ON_COMMAND(ID_QT_ABOUTBOX, OnQtAbout)
 	ON_COMMAND(ID_FILE_PREFERENCES, OnFilePreferences)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_IMPORT_3D_OBJECT, OnImport3DObject)
@@ -417,6 +423,16 @@ CWorldEditorView* CWorldEditorApp::GetActiveView(void)
 
 CWorldEditorApp theApp;
 
+CWorldEditorApp::ModalGuard::ModalGuard()
+{
+  theApp.m_showing_modal_dialog = true;
+}
+
+CWorldEditorApp::ModalGuard::~ModalGuard()
+{
+  theApp.m_showing_modal_dialog = false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CWorldEditorApp initialization
 
@@ -493,6 +509,17 @@ static CTString GetNextParam(void)
   }
 }
 
+void CWorldEditorApp::InstallOneTimeSelectionStealer(std::function<void(CEntity*)>&& selection_stealer, void* source)
+{
+  m_selection_stealer = std::move(selection_stealer);
+  EventHub::instance().SelectionStealerInstalled(source);
+}
+
+const std::function<void(CEntity*)>& CWorldEditorApp::GetSelectionStealer() const
+{
+  return m_selection_stealer;
+}
+
 // check for custom parameters
 void CWorldEditorApp::MyParseCommandLine(void)
 {
@@ -529,6 +556,16 @@ void CWorldEditorApp::MyParseCommandLine(void)
 
 BOOL CWorldEditorApp::SubInitInstance()
 {
+  HICON app_icon = (HICON)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+  QMfcApp::instance(this)->setWindowIcon(QIcon(QtWin::fromHICON(app_icon)));
+  ::DestroyIcon(app_icon);
+
+  QObject::connect(&EventHub::instance(), &EventHub::CurrentEntitySelectionChanged, [this]
+    {
+      InstallOneTimeSelectionStealer(nullptr, nullptr);
+    });
+
+  m_showing_modal_dialog = false;
   // required for visual styles
   InitCommonControls();
 
@@ -560,9 +597,9 @@ BOOL CWorldEditorApp::SubInitInstance()
 
   // settings will be saved into registry instead of ini file
   if (_strModExt=="") {
-    SetRegistryKey( CString("CroTeam"));
+    SetRegistryKey( CString("SeriousEngine"));
   } else {
-    SetRegistryKey( CString("CroTeam\\"+_strModExt));
+    SetRegistryKey( CString("SeriousEngine\\"+_strModExt));
   }
 
   CPrintF("%s", cmd_strOutput);
@@ -920,6 +957,13 @@ void CWorldEditorApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
+}
+
+void CWorldEditorApp::OnQtAbout()
+{
+  CWorldEditorApp::ModalGuard guard;
+  QWinWidget modal_widget(m_pMainWnd->GetSafeHwnd(), nullptr, Qt::WindowFlags{});
+  QMessageBox::aboutQt(&modal_widget, "About Qt");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2078,6 +2122,9 @@ void CWorldEditorApp::OnFilePreferences()
 
 BOOL CWorldEditorApp::OnIdle(LONG lCount)
 {
+  if (m_showing_modal_dialog)
+    return CWinApp::OnIdle(lCount);
+
   // if game is on
   if( _pInput->IsInputEnabled())
   {
@@ -2482,7 +2529,9 @@ BOOL CWorldEditorApp::Add3DObject(CWorldEditorDoc *pDoc, CEntity *penwb, CTFileN
     else
     {
       // copy entities
-      penwb->en_pwoWorld->CopyEntities( woWorld, woWorld.wo_cenEntities, pDoc->m_selEntitySelection, plDummy);
+      CEntitySelection tmp_selection;
+      penwb->en_pwoWorld->CopyEntities( woWorld, woWorld.wo_cenEntities, tmp_selection, plDummy);
+      pDoc->m_selEntitySelection.ConvertFromCTSelection(tmp_selection);
     }
   }
   // catch and
@@ -2686,14 +2735,19 @@ int CWorldEditorApp::Run()
 {
 	int iResult;
   CTSTREAM_BEGIN {
-    iResult=CWinApp::Run();
+    iResult = QMfcApp::run(this);
   } CTSTREAM_END;
+  delete qApp;
 	return iResult;
 }
 
 BOOL CWorldEditorApp::PreTranslateMessage(MSG* pMsg)
 {
-	return CWinApp::PreTranslateMessage(pMsg);
+  CMainFrame* main_frame = static_cast<CMainFrame*>(m_pMainWnd);
+  if (m_showing_modal_dialog || (main_frame && main_frame->m_propertyTree.IsUnderMouse()))
+    return FALSE;
+
+  return CWinApp::PreTranslateMessage(pMsg);
 }
 
 CTString CWorldEditorApp::GetNameForVirtualTreeNode( CVirtualTreeNode *pvtnNode)

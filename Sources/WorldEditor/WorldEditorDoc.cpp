@@ -1010,8 +1010,10 @@ void CWorldEditorDoc::ApplyCSG(enum CSGType CSGType)
         }
       }}
       // copy entities in container
+      CEntitySelection tmp_selection;
       m_woWorld.CopyEntities( *m_pwoSecondLayer, cenToCopy, 
-        m_selEntitySelection, m_plSecondLayer);
+        tmp_selection, m_plSecondLayer);
+      m_selEntitySelection.ConvertFromCTSelection(tmp_selection);
       m_iPreCSGMode = ENTITY_MODE;
       break;
     }
@@ -2956,7 +2958,7 @@ void CWorldEditorDoc::PreApplyCSG(enum CSGType CSGType)
 
     CDynamicContainer<CEntity> dcenDummy;
     // for all still selected brush entities
-    {FOREACHINDYNAMICCONTAINER(m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : m_selEntitySelection)
     {
       CEntity::RenderType rt = iten->GetRenderType();
       // if the entity is brush and it is not empty
@@ -2969,9 +2971,9 @@ void CWorldEditorDoc::PreApplyCSG(enum CSGType CSGType)
       else
       {
         // deselect clicked sector
-        dcenDummy.Add( &iten.Current());
+        dcenDummy.Add(iten);
       }
-    }}
+    }
     
     // for entities that should be deselected
     {FOREACHINDYNAMICCONTAINER(dcenDummy, CEntity, iten)
@@ -2987,7 +2989,7 @@ void CWorldEditorDoc::PreApplyCSG(enum CSGType CSGType)
     ClearSelections( ST_ENTITY);
 
     // delete all brush entities that are still selected
-    m_woWorld.DestroyEntities( m_selEntitySelection);
+    m_selEntitySelection.DestroyEntities(m_woWorld);
 
     // set wait cursor
     CWaitCursor StartWaitCursor;
@@ -3055,7 +3057,7 @@ BOOL CWorldEditorDoc::IsEntityCSGEnabled(void)
   if( GetEditingMode() != CSG_MODE)
   {
     // for all selected entities
-    FOREACHINDYNAMICCONTAINER(m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : m_selEntitySelection)
     {
       CEntity::RenderType rt = iten->GetRenderType();
       if( rt==CEntity::RT_BRUSH || rt==CEntity::RT_FIELDBRUSH)
@@ -3310,7 +3312,9 @@ void CWorldEditorDoc::OnShowAllSectors()
 void CWorldEditorDoc::OnHideSelectedEntities() 
 {
 	// hide selected entities
-	m_woWorld.HideSelectedEntities( m_selEntitySelection);
+  CDynamicContainer<CEntity> tmp_selection;
+  m_selEntitySelection.ConvertToCTContainer(tmp_selection);
+	m_woWorld.HideSelectedEntities(tmp_selection);
   // update all views
   UpdateAllViews( NULL);
 }
@@ -4023,9 +4027,7 @@ BOOL CWorldEditorDoc::IsCloneUpdatingAllowed(void)
   if( ctEntities == 1)
   {
     // get only selected entity
-    m_selEntitySelection.Lock();
-    CEntity *penOnlySelected = &m_selEntitySelection[0];
-    m_selEntitySelection.Unlock();
+    CEntity *penOnlySelected = m_selEntitySelection.GetFirstInSelection();
 
     // if entity doesn't have parent
     if( penOnlySelected->GetParent() == NULL)
@@ -4062,9 +4064,7 @@ void CWorldEditorDoc::OnUpdateClones()
   }
   
   // get only selected entity
-  m_selEntitySelection.Lock();
-  CEntity *penOnlySelected = &m_selEntitySelection[0];
-  m_selEntitySelection.Unlock();
+  CEntity *penOnlySelected = m_selEntitySelection.GetFirstInSelection();
 
   // clear selections before destroying some entities
   ClearSelections();

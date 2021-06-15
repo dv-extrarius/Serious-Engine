@@ -102,7 +102,7 @@ void CDlgLinkTree::InitializeTree(void)
   m_ctrTree.DeleteAllItems();
   if( m_pen==NULL || m_pen->IsSelected( ENF_SELECTED))
   {
-    FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+    for (CEntity* iten : pDoc->m_selEntitySelection)
     {
       CEntity &en=*iten;
       AddEntityPtrsRecursiv( &en, 0, "");

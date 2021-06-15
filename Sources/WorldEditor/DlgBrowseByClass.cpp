@@ -56,6 +56,7 @@ CEntity *_penForDistanceSort = NULL;
 BOOL _bOfSameClass=FALSE;
 INDEX _ctProperties=0;
 CDynamicContainer<class CEntity> _tempContainer;
+CDynamicContainer<class CEntity> _tempSelectionContainer;
 BOOL _bTempContainer=FALSE;
 
 BOOL AreAllEntitiesOfTheSameClass(CDynamicContainer<class CEntity> *penContainer)
@@ -392,8 +393,11 @@ int CALLBACK SortEntities(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
   if( theApp.m_bInvertClassSort) return -iResult; else return iResult;
 }
 
-CDlgBrowseByClass::CDlgBrowseByClass(CWnd* pParent /*=NULL*/)
+CDlgBrowseByClass::CDlgBrowseByClass(CWnd* pParent /*=NULL*/, bool for_picking, std::function<bool(CEntity*)>&& filter)
 	: CDialog(CDlgBrowseByClass::IDD, pParent)
+  , m_for_picking(for_picking)
+  , m_filter(std::move(filter))
+  , m_selected_entity(nullptr)
 {
 	//{{AFX_DATA_INIT(CDlgBrowseByClass)
 	m_strEntitiesInVolume = _T("");
@@ -440,7 +444,10 @@ void CDlgBrowseByClass::DoDataExchange(CDataExchange* pDX)
   if( pDX->m_bSaveAndValidate != FALSE)
   {
     // clear document selection
-    pDoc->m_selEntitySelection.Clear();
+    if (!m_for_picking)
+      pDoc->m_selEntitySelection.Clear();
+    else
+      m_selected_entity = nullptr;
     // mark all selected entities in list as selected in document's entity selection
     INDEX iSelectedItem = -1;
     FOREVER
@@ -453,7 +460,10 @@ void CDlgBrowseByClass::DoDataExchange(CDataExchange* pDX)
       // get selected entity
       CEntity *penEntity = (CEntity *) m_listEntities.GetItemData(iSelectedItem);
       // add entity into normal selection
-      pDoc->m_selEntitySelection.Select( *penEntity);
+      if (!m_for_picking)
+        pDoc->m_selEntitySelection.Select(*penEntity);
+      else
+        m_selected_entity = penEntity;
     }
     if( pDoc->m_bBrowseEntitiesMode)
     {
@@ -545,9 +555,10 @@ CDynamicContainer<class CEntity> *CDlgBrowseByClass::GetCurrentContainer(void)
   {
     return &pDoc->m_cenEntitiesSelectedByVolume;
   }
-  else if( pDoc->m_selEntitySelection.Count() > 1)
+  else if(!m_for_picking && pDoc->m_selEntitySelection.Count() > 1)
   {
-    return &pDoc->m_selEntitySelection;
+    pDoc->m_selEntitySelection.ConvertToCTContainer(_tempSelectionContainer);
+    return &_tempSelectionContainer;
   }
   return &pDoc->m_woWorld.wo_cenEntities;
 }
@@ -574,7 +585,8 @@ void CDlgBrowseByClass::FillListWithEntities(void)
     CBrushSector *pbscSector = iten->GetFirstSector();
     if(!(iten->en_ulFlags&ENF_HIDDEN) &&
         ((pbscSector == NULL) || !(pbscSector->bsc_ulFlags & BSCF_HIDDEN)) &&
-        (!m_bShowImportants || iten->IsImportant()))
+        (!m_bShowImportants || iten->IsImportant()) &&
+        (!m_filter || m_filter(iten)))
     {
       AddEntity( &iten.Current());
     }
@@ -586,9 +598,7 @@ void CDlgBrowseByClass::FillListWithEntities(void)
   // select one that was selected before calling dialog
   if( pDoc->m_selEntitySelection.Count() == 1)
   {
-    pDoc->m_selEntitySelection.Lock();
-    CEntity *penOnly = pDoc->m_selEntitySelection.Pointer(0);
-    pDoc->m_selEntitySelection.Unlock();
+    CEntity *penOnly = pDoc->m_selEntitySelection.GetFirstInSelection();
 
     INDEX ctItems = m_listEntities.GetItemCount();
     for( INDEX iItem=0; iItem<ctItems; iItem++)
@@ -722,7 +732,16 @@ BOOL CDlgBrowseByClass::OnInitDialog()
   MOVE_BUTTON( ID_SELECT_SECTORS, 3);
   MOVE_BUTTON( IDOK, 2);
   MOVE_BUTTON( IDCANCEL, 1);
+  if (m_for_picking)
+  {
+    GetDlgItem(ID_DELETE_BROWSE_BY_CLASS)->EnableWindow(FALSE);
+    GetDlgItem(ID_FEED_VOLUME)->EnableWindow(FALSE);
+    GetDlgItem(ID_SELECT_SECTORS)->EnableWindow(FALSE);
+    GetDlgItem(IDC_PLUGGINS)->EnableWindow(FALSE);
+    GetDlgItem(IDC_DISPLAY_VOLUME)->EnableWindow(FALSE);
 
+    m_listEntities.ModifyStyle(0, LVS_SINGLESEL, 0);
+  }
   FillListWithEntities();
   InitializePluggins();
 	return TRUE;
@@ -997,7 +1016,7 @@ void CDlgBrowseByClass::OnDeleteBrowseByClass()
   }
 
   // check for deleting terrain
-  {FOREACHINDYNAMICCONTAINER(pDoc->m_selEntitySelection, CEntity, iten)
+  {for (CEntity* iten : pDoc->m_selEntitySelection)
   {
     CEntity &en=*iten;
     // if it is terrain
@@ -1021,8 +1040,7 @@ void CDlgBrowseByClass::OnDeleteBrowseByClass()
   }}
   
   // delete all selected entities
-  pDoc->m_woWorld.DestroyEntities( pDoc->m_selEntitySelection);
-  pDoc->m_selEntitySelection.Clear();
+  pDoc->m_selEntitySelection.DestroyEntities(pDoc->m_woWorld);
   pDoc->SetModifiedFlag( TRUE);
   pDoc->m_chDocument.MarkChanged();
 

@@ -1,3 +1,7 @@
 [submodule "Sources/assimp"]
 	path = Sources/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "Sources/qtsolutions"]
+	path = Sources/qtsolutions
+	url = https://github.com/SeriousAlexej/qt-solutions.git
+	branch = master
