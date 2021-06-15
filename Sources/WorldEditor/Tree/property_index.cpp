@@ -43,6 +43,8 @@ public:
     editor->setStyleSheet(g_spin_style);
     editor->setRange(-99999999, 99999999);
     editor->setValue(_CurrentPropValue());
+    editor->setFocusPolicy(Qt::StrongFocus);
+    editor->installEventFilter(this);
 
     QObject::connect(editor, &QDoubleSpinBox::editingFinished, this, [this, editor]
       {
@@ -53,6 +55,17 @@ public:
   }
 
   IMPL_GENERIC_PROPERTY_FUNCTIONS(INDEX)
+
+private:
+  bool eventFilter(QObject* object, QEvent* event) override
+  {
+    if (event->type() == QEvent::Wheel)
+    {
+      event->ignore();
+      return true;
+    }
+    return BaseEntityPropertyTreeItem::eventFilter(object, event);
+  }
 };
 
 /*******************************************************************************************/

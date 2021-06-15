@@ -33,6 +33,8 @@ public:
     editor->setDecimals(4);
     editor->setSingleStep(0.25);
     editor->setValue(_WrappedValue(_CurrentPropValueT<FLOAT>()));
+    editor->setFocusPolicy(Qt::StrongFocus);
+    editor->installEventFilter(this);
 
     QObject::connect(editor, &QDoubleSpinBox::editingFinished, this, [this, editor]
       {
@@ -53,6 +55,17 @@ protected:
   virtual void _CustomizeEditor(QDoubleSpinBox* editor)
   {
     (void)editor;
+  }
+
+private:
+  bool eventFilter(QObject* object, QEvent* event) override
+  {
+    if (event->type() == QEvent::Wheel)
+    {
+      event->ignore();
+      return true;
+    }
+    return BaseEntityPropertyTreeItem::eventFilter(object, event);
   }
 };
 
