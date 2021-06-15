@@ -46,7 +46,10 @@ public:
 
     CTFileName curr_value = (m_dependencies ? _CurrentPropValueT<CTFileName>() : _CurrentPropValueT<CTFileNameNoDep>());
     if (curr_value != "")
+    {
       editor->addItem(QString(curr_value.FileName().str_String) + QString(curr_value.FileExt().str_String), 1);
+      editor->setToolTip(curr_value.str_String);
+    }
     editor->addItem("(browse)", 2);
     editor->addItem("(none)", 3);
 
